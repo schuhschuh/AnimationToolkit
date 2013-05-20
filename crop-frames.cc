@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 {
   // Command help
   cimg_usage("[options] -i animation.mov  -o frames.png [-c coords.csv]\n"
-"             [options] -i frames_\%6d.png -o frames.png [-c coords.csv]\n"
+"              [options] -i frames_\%6d.png -o frames.png [-c coords.csv]\n"
 "\n version: " VERSION);
   cimg_help(" This program can be used to crop all frames of an image sequence such as an animation.\n"
             " All frames of the sequence are expected to have the same size. Each frame is by\n"
