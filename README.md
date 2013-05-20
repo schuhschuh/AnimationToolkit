@@ -30,8 +30,11 @@ DOCUMENTATION
 =============
 
 The tools provided by The Animation Toolkit have to be executed in a command
-window such as the "Terminal" application on Mac OS X or the Command Prompt
-on Microsoft Windows.
+window such as the **[Terminal][5]** application on Mac OS X or the
+**[Command Prompt][6]** on Microsoft Windows. Users of Linux systems will
+likely be familiar with their command shell and know how to run the following
+commands. Others may refer to the documentation of their respective operating
+system.
 
 
 crop-frames
@@ -111,3 +114,5 @@ CMake Options
 [2]: http://www.gnu.org/licenses/
 [3]: http://cimg.sourceforge.net/
 [4]: http://www.gnu.org/software/make/
+[5]: http://www.apple.com/osx/apps/all.html#terminal
+[6]: http://windows.microsoft.com/en-gb/windows-vista/command-prompt-frequently-asked-questions
