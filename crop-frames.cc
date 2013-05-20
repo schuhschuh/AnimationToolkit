@@ -15,6 +15,8 @@
  * with The Animation Toolkit. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
+
 // ----------------------------------------------------------------------------
 // CImg
 #define cimg_display   0
@@ -40,7 +42,7 @@ int main(int argc, char *argv[])
   // Command help
   cimg_usage("[options] -i animation.mov  -o frames.png [-c coords.csv]\n"
 "             [options] -i frames_\%6d.png -o frames.png [-c coords.csv]\n"
-"\n version: 1.1");
+"\n version: " VERSION);
   cimg_help(" This program can be used to crop all frames of an image sequence such as an animation.\n"
             " All frames of the sequence are expected to have the same size. Each frame is by\n"
             " default cropped to the smallest possible bounding box. A CSV file with the minimum\n"

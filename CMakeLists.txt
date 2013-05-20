@@ -112,5 +112,10 @@ macro (add_executable tgt)
 endmacro ()
 
 # -----------------------------------------------------------------------------
+# configure config.h
+configure_file (config.h.in ${PROJECT_BINARY_DIR}/config.h @ONLY)
+include_directories (${PROJECT_BINARY_DIR})
+
+# -----------------------------------------------------------------------------
 # tools
 add_executable (crop-frames)
