@@ -136,5 +136,5 @@ CMake Options
 [5]: http://www.apple.com/osx/apps/all.html#terminal
 [6]: http://windows.microsoft.com/en-gb/windows-vista/command-prompt-frequently-asked-questions
 [7]: https://projects.andreasschuh.com/projects/animationtoolkit/files
-[8]: https://projects.andreasschuh.com/attachments/download/51/AnimationToolkit-0.1-Darwin.dmg
+[8]: https://projects.andreasschuh.com/attachments/download/52/AnimationToolkit-0.1-Darwin.dmg
 [9]: https://github.com/schuhschuh/AnimationToolkit/tree/workflows
