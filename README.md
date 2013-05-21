@@ -27,13 +27,13 @@ The Animation Toolkit Workflows. If not, see <http://www.gnu.org/licenses/>.
 INSTALLATION
 ============
 
-Before the workflows can be used, **The Animation Toolkit** has to be installed.
-Therefore, follow the installation instructions given [here][3] if not done yet.
-
 To install the Mac OS X Workflows of The Animation Toolkit, download the compressed
 archive containing the workflows from [here][4]. Open the archive by double clicking
 on it in the Finder. Install each workflow by `double click`ing on it and choosing
 `Install` from the dialog.
+
+Before the workflows can be used, **The Animation Toolkit** has to be installed.
+Therefore, follow the installation instructions given [here][3] if not done yet.
 
 
 FOLDER ACTIONS
