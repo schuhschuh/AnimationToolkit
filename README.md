@@ -37,58 +37,9 @@ Download the most recent **[Mac OS X Installer Package][8]**. Double click the
 installer (.mpkg file) and follow the instructions on screen. This will install
 the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`.
 
-Additionally, some useful [Automator Workflows](#workflows) which make use
-of the basic tools of the toolkit and are more convenient to use are installed
-into the folder `/Users/<user>/Library/Workflows/Applications/Folder Actions`.
-
-
-<a id="workflows"></a>
-MAC OS X WORKFLOWS
-==================
-
-In a nutshell, Folder Actions are scripts that can be attached to folders.
-They enable events (actions) to take place when items are added or removed from
-that folder. Events can also occur when the folder is opened, closed or moved.
-
-The Animation Toolkit provides the following Folder Actions:
-
-- [Crop Animation Frames (Individually)](#action-crop-frames-individually)
-- [Crop Animation Frames (Fixed Size)](#action-crop-frames-fixed)
-
-To attach a Folder Action to a folder, right click on the folder and select
-the option `Folder Action Setup...` from the `Services` menu. Find the respective
-Folder Action in the list, select it, and click on `Attach`. Close the dialog.
-The Folder Action should now be successfully attached and is ready to use.
-
-
-Crop Animation Frames (Individually)
-------------------------------------
-
-This Folder Action processes each animation file separately, appending the pixel
-coordinates of the crop region to a CSV spreadsheet file which has the same name
-as the animation frames.
-For example, copy the file animation_000000.png into the folder which the
-action is attached to. This will create a cropped image
-Cropped/animation_000000.png and store the coordinates in the spreadsheet
-Cropped/animation.csv. Copying the file animation_000001.png into the
-folder will create the cropped image Cropped/animation_000001.png and append
-the coordinates to the existing spreadsheet Cropped/animation.csv.
-
-If a movie file such as animation.mov is copied into the folder, each frame
-of the movie is cropped using the bounding box which covers the object in all
-frames of the movie and writes the resulting movie to the file
-Cropped/animation.mov along with the spreadsheet Cropped/animation.csv.
-
-Crop Animation Frames (Fixed Size)
-----------------------------------
-
-This Folder Action processes the image sequences similar to the
-[Crop Animation Frames (Individually)](#action-crop-frames-individually).
-
-If a movie file such as animation.mov is copied into the folder, however,
-each frame of the movie is cropped using the smallest fixed size bounding
-box which covers the object in each frame of the move and writes the
-resulting cropped frames to separate PNG files.
+Automator Workflows for Mac OS X which automatize and simplify the use of these
+basic tools can be installed separately by downloading the
+[The Animation Toolkit Workflows][8] package.
 
 
 <a id="tools"></a>
@@ -175,7 +126,6 @@ CMake Options
 -------------
 
 - `CMAKE_INSTALL_PREFIX`: Root directory used for the installation of the tools.
-- `INSTALL_WORKFLOWS`: Whether to install the [Mac OS X Workflows](#workflows).
 
 
 
@@ -187,3 +137,4 @@ CMake Options
 [6]: http://windows.microsoft.com/en-gb/windows-vista/command-prompt-frequently-asked-questions
 [7]: https://projects.andreasschuh.com/projects/animationtoolkit/files
 [8]: https://projects.andreasschuh.com/attachments/download/51/AnimationToolkit-0.1-Darwin.dmg
+[9]: https://github.com/schuhschuh/AnimationToolkit/tree/workflows

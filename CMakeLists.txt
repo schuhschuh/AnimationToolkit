@@ -93,21 +93,6 @@ include_directories (${PROJECT_BINARY_DIR}/src)
 # tools
 add_tool (crop-frames)
 
-# -----------------------------------------------------------------------------
-# Mac OS X workflows
-if (APPLE)
-  option (INSTALL_WORKFLOWS "Enable installation of Mac OS X Workflows" OFF)
-  if (INSTALL_WORKFLOWS)
-    set (FOLDER_ACTIONS
-      "osx/Crop Animation Frames (Individually)"
-      "osx/Crop Animation Frames (Fixed Size)"
-    )
-    foreach (workflow IN LISTS FOLDER_ACTIONS)
-      install_workflow ("${workflow}")
-    endforeach ()
-  endif ()
-endif ()
-
 # ----------------------------------------------------------------------------
 # packaging
 set (CPACK_PACKAGE_NAME                "${PROJECT_NAME}")
@@ -127,9 +112,6 @@ include (CPack)
 
 cpack_add_install_type (Full)
 cpack_add_install_type (Tools)
-if (APPLE)
-  cpack_add_install_type (Workflows)
-endif ()
 
 cpack_add_component(
   tools
@@ -137,12 +119,4 @@ cpack_add_component(
     DESCRIPTION  "Basic tools that are executed from a terminal."
     REQUIRED
     INSTALL_TYPES Full Tools
-)
-
-cpack_add_component(
-  workflows
-    DISPLAY_NAME  "Automator Workflows"
-    DESCRIPTION   "Automator workflows such as folder actions which ease the use of the basic tools."
-    DEPENDS       tools
-    INSTALL_TYPES Full Workflows
 )
