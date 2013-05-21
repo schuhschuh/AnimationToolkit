@@ -60,11 +60,11 @@ that folder. Events can also occur when the folder is opened, closed or moved.
 
 The Animation Toolkit provides the following Folder Actions:
 
-- [Crop Animation Frames (Individually)](#crop-frames-individually)
-- [Crop Animation Frames (Fixed Size)](#crop-frames-fixed)
+- [Crop Animation Frames (Individually)](#crop-animation-frames-individually)
+- [Crop Animation Frames (Fixed Size)](#crop-animation-frames-fixed)
 
 
-<a id="crop-frames-individually"></a>
+<a id="crop-animation-frames-individually"></a>
 Crop Animation Frames (Individually)
 ------------------------------------
 
@@ -84,7 +84,7 @@ frames of the movie and writes the resulting movie to the file
 Cropped/animation.mov along with the spreadsheet Cropped/animation.csv.
 
 
-<a id="crop-frames-fixed"></a>
+<a id="crop-animation-frames-fixed"></a>
 Crop Animation Frames (Fixed Size)
 ----------------------------------
 
