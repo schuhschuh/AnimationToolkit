@@ -65,9 +65,17 @@ get_filename_component (RUNTIME_INSTALL_ABSDIR "${CMAKE_INSTALL_PREFIX}/${RUNTIM
 
 # -----------------------------------------------------------------------------
 # dependencies
+if (APPLE)
+  set (CMAKE_FIND_LIBRARY_SUFFIXES ".a;.dylib;.so")
+else (WIN32)
+  set (CMAKE_FIND_LIBRARY_SUFFIXES ".a;.lib")
+else ()
+  set (CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
+endif ()
+
 find_package (PNG)
 find_package (JPEG)
-find_package (TIFF)
+#find_package (TIFF)
 
 if (PNG_FOUND)
   include_directories (${PNG_INCLUDE_DIRS})
