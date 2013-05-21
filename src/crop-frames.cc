@@ -55,7 +55,7 @@ string remove_pattern(const string &str)
 
 // ----------------------------------------------------------------------------
 // Replace '_[0-9]+' pattern from string matching regular expression '*_[0-9]+\.*'
-string replace_pattern(const string &str, const char *sub, int &b)
+string replace_pattern(const string &str, int &b)
 {
   string res;
   string n;
@@ -65,7 +65,9 @@ string replace_pattern(const string &str, const char *sub, int &b)
   while ('0' <= *p && *p <= '9') n.push_back(*p++);
   if (!n.empty()) b = atoi(n.c_str());
   if (*p != '.') return str;
-  return (res + sub) + p;
+  char d[32];
+  snprintf(d, 32, "%lu", n.size());
+  return (res + "_%0" + d + "d") + p;
 }
 
 // ----------------------------------------------------------------------------
@@ -113,7 +115,7 @@ int main(int argc, char *argv[])
   string csvname = cimg_option("-c", default_csvname.c_str(), "Output CSV spreadsheet for pixel coordinates. (false: no output)");
   // Replace _[0-9]+ pattern of input filename by format string
   int fbegin = get_frame_number(ifname);
-  if (default_ofname != ifname) ifname = replace_pattern (ifname, "_\%06d", fbegin);
+  if (default_ofname != ifname) ifname = replace_pattern (ifname, fbegin);
   // Remaining command-line options
          fbegin  = cimg_option("-b", fbegin, "Index of first frame of image sequence.");
   int    fend    = cimg_option("-e", -1,     "Index of last frame of image sequence.");
