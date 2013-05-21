@@ -59,7 +59,7 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string>PATH=/opt/local/bin:/usr/bin:/bin:/usr/local/bin:/usr/X11/bin
+					<string>PATH=/opt/animationtoolkit/bin:/opt/local/bin:/usr/bin:/bin:/usr/local/bin:/usr/X11/bin
 LOG="$(dirname "$1")/.crop-frames.log"
 PREFIX=Cropped/
 EXT=.png
@@ -75,8 +75,8 @@ while [ $# -gt 0 ]; do
     o="$(dirname "$1")/$PREFIX${name%.*}$EXT"
     mkdir -p "$(dirname "$o")"
     echo "$(date)" &gt;&gt; "$LOG" 2&gt;&amp;1
-    echo "\"/Applications/AnimationToolkit/crop-frames\" -i \"$1\" -o \"$o\" -a true -f 1 -v 2" &gt;&gt; "$LOG" 2&gt;&amp;1
-    "/Applications/AnimationToolkit/crop-frames" -i "$1" -o "$o" -a true -f 1 -v 2 &gt;&gt; "$LOG" 2&gt;&amp;1
+    echo "\"$(which crop-frames)\" -i \"$1\" -o \"$o\" -a true -f 1 -v 2" &gt;&gt; "$LOG" 2&gt;&amp;1
+    crop-frames -i "$1" -o "$o" -a true -f 1 -v 2 &gt;&gt; "$LOG" 2&gt;&amp;1
     echo -e "\n\n" &gt;&gt; "$LOG" 2&gt;&amp;1
   fi
   shift
