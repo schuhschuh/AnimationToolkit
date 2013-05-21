@@ -32,10 +32,25 @@ archive containing the workflows from [here][4]. Open the archive by double clic
 on it in the Finder. Install each workflow by `double click`ing on it and choosing
 `Install` from the dialog.
 
+By default, [Folder Actions of The Animation Toolkit](#folder-actions) are attched
+to the user's Desktop. Any image or movie file with an extension of a supported file
+format are processed. The results are placed in automatically created folders on
+the Desktop. These folders are named after the respective Folder Action.
+
+In case you want to attach a Folder Action to a different folder, open the `Finder`
+window and create a new empty folder or go to an already existing folder you want
+to use for the Folder Action. Then right click on this new folder and select the option
+`Folder Action Setup...` (from the `Services` menu). Find the respective
+Folder Action in the list, select it, and click on `Attach`. Close the dialog.
+The Folder Action should now be successfully attached and is ready to use.
+The Folder Action Setup dialog can also be used to disable Folder Actions again,
+such as in particular the by default attached actions for the Desktop.
+
 Before the workflows can be used, **The Animation Toolkit** has to be installed.
 Therefore, follow the installation instructions given [here][3] if not done yet.
 
 
+<a id="folder-actions"></a>
 FOLDER ACTIONS
 ==============
 
@@ -47,12 +62,6 @@ The Animation Toolkit provides the following Folder Actions:
 
 - [Crop Animation Frames (Individually)](#crop-frames-individually)
 - [Crop Animation Frames (Fixed Size)](#crop-frames-fixed)
-
-To attach a Folder Action to a folder, open the `Finder` window and create a new
-empty folder. Then right click on this new folder and select the option
-`Folder Action Setup...` (from the `Services` menu). Find the respective
-Folder Action in the list, select it, and click on `Attach`. Close the dialog.
-The Folder Action should now be successfully attached and is ready to use.
 
 
 <a id="crop-frames-individually"></a>
