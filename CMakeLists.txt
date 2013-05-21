@@ -150,7 +150,8 @@ add_executable (crop-frames)
 # -----------------------------------------------------------------------------
 # Mac OS X workflows
 if (APPLE)
-  option (INSTALL_WORKFLOWS "Enable installation of Mac OS X Workflows" ON)
+  option (INSTALL_WORKFLOWS "Enable installation of Mac OS X Workflows" OFF)
+  mark_as_advanced (INSTALL_WORKFLOWS)
   if (INSTALL_WORKFLOWS)
     set (FOLDER_ACTIONS
       "osx/Crop Animation Frames (Individually)"
