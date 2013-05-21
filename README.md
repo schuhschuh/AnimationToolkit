@@ -36,7 +36,7 @@ the [basic tools](#basic-tools) into the folder `/opt/animationtoolkit/bin`.
 If you would like to remove the installed files later again, simply follow the
 instructions [below](#deinstallation).
 
-Automator Workflows which automatize and simplify the use of these basic tools
+Automator Workflows which automate and simplify the use of these basic tools
 can be installed separately by downloading the
 [The Animation Toolkit Workflows][9] package for Mac OS X users.
 
@@ -44,6 +44,11 @@ Other installer packages can be downloaded from [here][7]. At the moment, only
 installers for Intel-based Apple computers running Mac OS X >=10.7 are provided.
 The Animation Toolkit has to be [built from sources](#building-the-software-from-sources)
 on other platforms.
+
+To be able to process video files, the `ffmpeg` command of [FFmpeg][10] must be installed.
+For example, download the [FFmpeg Static Builds by tessus][11] for Mac OS X and
+extract the archive to `/opt/animationtoolkit/bin`. Therefore, you will need the
+[7zX][12] archiving tool.
 
 
 <a id="basic-tools"></a>
@@ -152,3 +157,6 @@ type the following command and press enter:
 [7]: https://projects.andreasschuh.com/projects/animationtoolkit/files
 [8]: https://projects.andreasschuh.com/attachments/download/52/AnimationToolkit-0.1-Darwin.dmg
 [9]: https://github.com/schuhschuh/AnimationToolkit/tree/workflows
+[10]: http://www.ffmpeg.org/
+[11]: http://www.evermeet.cx/ffmpeg/
+[12]: http://7zx.en.softonic.com/mac
