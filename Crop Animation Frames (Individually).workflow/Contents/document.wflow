@@ -70,13 +70,16 @@ if [ -f "$LOG" ]; then
 fi
 # Process each file passed as argument
 name="$(basename "$1")"
-if [[ -f "$1" ]] &amp;&amp; [[ $name =~ \.(bmp|BMP|png|PNG|jpg|JPG|jpeg|JPEG|mov|MOV|flv|FLV|m1v|M1V|m2v|M2V|m4v|M4V|avi|AVI|wmv|WMV|mpg|MPG|mpeg|MPEG)$ ]]; then
-  o="$(dirname "$1")/$PREFIX$name"
-  mkdir -p "$(dirname "$o")"
-  echo "$(date)" &gt;&gt; "$LOG" 2&gt;&amp;1
-  echo "\"$(which crop-frames)\" -i \"$1\" -o \"$o\" -a true -v 2" &gt;&gt; "$LOG" 2&gt;&amp;1
-  crop-frames -i "$1" -o "$o" -a true -v 2 &gt;&gt; "$LOG" 2&gt;&amp;1
-  echo -e "\n\n" &gt;&gt; "$LOG" 2&gt;&amp;1
+if [[ -f "$1" ]]; then
+  if [[ $name =~ \.(mov|MOV|flv|FLV|m1v|M1V|m2v|M2V|m4v|M4V|avi|AVI|wmv|WMV|mpg|MPG|mpeg|MPEG)$ ]] || \
+     [[ $name =~ _[0-9][0-9]*\.(bmp|BMP|png|PNG|jpg|JPG|jpeg|JPEG)$ ]]; then
+    o="$(dirname "$1")/$PREFIX$name"
+    mkdir -p "$(dirname "$o")"
+    echo "$(date)" &gt;&gt; "$LOG" 2&gt;&amp;1
+    echo "\"$(which crop-frames)\" -i \"$1\" -o \"$o\" -a true -v 2" &gt;&gt; "$LOG" 2&gt;&amp;1
+    crop-frames -i "$1" -o "$o" -a true -v 2 &gt;&gt; "$LOG" 2&gt;&amp;1
+    echo -e "\n\n" &gt;&gt; "$LOG" 2&gt;&amp;1
+  fi
 fi
 </string>
 					<key>CheckedForUserDefaultShell</key>
