@@ -70,6 +70,13 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX)
   )
 endif ()
 
+if (CMAKE_INSTALL_PREFIX MATCHES "${PROJECT_NAME}")
+  set (RUNTIME_INSTALL_DIR .)
+else ()
+  set (RUNTIME_INSTALL_DIR bin)
+endif ()
+get_filename_component (RUNTIME_INSTALL_ABSDIR "${CMAKE_INSTALL_PREFIX}/${RUNTIME_INSTALL_DIR}" ABSOLUTE)
+
 # -----------------------------------------------------------------------------
 # dependencies
 find_package (PNG)
@@ -94,7 +101,7 @@ include_directories (BEFORE ${PROJECT_SOURCE_DIR}/src)
 # -----------------------------------------------------------------------------
 # macros
 macro (add_executable tgt)
- _add_executable (${tgt} ${tgt}.cc ${ARGN})
+ _add_executable (${tgt} src/${tgt}.cc ${ARGN})
  if (PNG_FOUND)
    target_link_libraries (${tgt} ${PNG_LIBRARIES})
  endif ()
@@ -104,18 +111,53 @@ macro (add_executable tgt)
  if (TIFF_FOUND)
    target_link_libraries (${tgt} ${TIFF_LIBRARIES})
  endif ()
- if (CMAKE_INSTALL_PREFIX MATCHES "${PROJECT_NAME}")
-   install (TARGETS ${tgt} RUNTIME DESTINATION .)
- else ()
-   install (TARGETS ${tgt} RUNTIME DESTINATION bin)
- endif ()
+ install (TARGETS ${tgt} RUNTIME DESTINATION ${RUNTIME_INSTALL_DIR})
+endmacro ()
+
+# Note: Modifying the documents.wflow file manually seems to corrupt it.
+macro (configure_workflow src dest)
+  file (MAKE_DIRECTORY "${dest}.workflow/Contents/QuickLook")
+  configure_file (
+    "${src}.workflow/Contents/document.wflow"
+    "${dest}.workflow/Contents/documents.wflow"         @ONLY
+  )
+  configure_file (
+    "${src}.workflow/Contents/Info.plist"
+    "${dest}.workflow/Contents/Info.plist"              COPYONLY
+  )
+  configure_file (
+    "${src}.workflow/Contents/QuickLook/Thumbnail.png"
+    "${dest}.workflow/Contents/QuickLook/Thumbnail.png" COPYONLY
+  )
+endmacro ()
+
+macro (install_workflow src)
+  install (
+    DIRECTORY   "${src}.workflow"
+    DESTINATION "$ENV{HOME}/Library/Workflows/Applications/Folder Actions"
+  )
 endmacro ()
 
 # -----------------------------------------------------------------------------
 # configure config.h
-configure_file (config.h.in ${PROJECT_BINARY_DIR}/config.h @ONLY)
-include_directories (${PROJECT_BINARY_DIR})
+configure_file (src/config.h.in ${PROJECT_BINARY_DIR}/src/config.h @ONLY)
+include_directories (${PROJECT_BINARY_DIR}/src)
 
 # -----------------------------------------------------------------------------
 # tools
 add_executable (crop-frames)
+
+# -----------------------------------------------------------------------------
+# Mac OS X workflows
+if (APPLE)
+  option (INSTALL_WORKFLOWS "Enable installation of Mac OS X Workflows" ON)
+  if (INSTALL_WORKFLOWS)
+    set (FOLDER_ACTIONS
+      "osx/Crop Animation Frames (Individually)"
+      "osx/Crop Animation Frames (Fixed Size)"
+    )
+    foreach (workflow IN LISTS FOLDER_ACTIONS)
+      install_workflow ("${workflow}")
+    endforeach ()
+  endif ()
+endif ()

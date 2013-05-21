@@ -15,7 +15,10 @@
  * with The Animation Toolkit. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string>
 #include "config.h"
+
+using namespace std;
 
 // ----------------------------------------------------------------------------
 // CImg
@@ -27,13 +30,63 @@ using namespace cimg_library;
 
 // ----------------------------------------------------------------------------
 // Checks if given filename contains a format pattern such as in test_%05d.png
-bool contains_pattern(const char *str)
+bool contains_pattern(const string &str)
 {
-  while ((str = strchr(str, '%')) && ++str) {
-    while ('0' <= *str && *str <= '9') ++str;
-    if (*str == 'd') return true;
+  const char *p = str.c_str();
+  while ((p = strchr(p, '%')) && ++p) {
+    while ('0' <= *p && *p <= '9') ++p;
+    if (*p == 'd') return true;
   }
   return false;
+}
+
+// ----------------------------------------------------------------------------
+// Remove '_[0-9]+' pattern from string matching regular expression '*_[0-9]+\.*'
+string remove_pattern(const string &str)
+{
+  string res;
+  const char *p = str.c_str();
+  while (*p && *p != '_') res.push_back(*p++);
+  p++;
+  while ('0' <= *p && *p <= '9') p++;
+  if (*p != '.') return str;
+  return res + p;
+}
+
+// ----------------------------------------------------------------------------
+// Replace '_[0-9]+' pattern from string matching regular expression '*_[0-9]+\.*'
+string replace_pattern(const string &str, const char *sub, int &b)
+{
+  string res;
+  string n;
+  const char *p = str.c_str();
+  while (*p && *p != '_') res.push_back(*p++);
+  p++;
+  while ('0' <= *p && *p <= '9') n.push_back(*p++);
+  if (!n.empty()) b = atoi(n.c_str());
+  if (*p != '.') return str;
+  return (res + sub) + p;
+}
+
+// ----------------------------------------------------------------------------
+// Replace filename extension
+string replace_extension(const string &str, const char *ext)
+{
+  string res(str);
+  size_t pos = res.rfind('.');
+  if (pos != string::npos) res.replace(pos, string::npos, ext);
+  return res;
+}
+
+// ----------------------------------------------------------------------------
+// Get frame number from filename matching regular expression '*_[0-9]+\.*'
+int get_frame_number(const string &str)
+{
+  string n;
+  const char *p = str.c_str();
+  while (*p && *p != '_') { p++; } p++;
+  while ('0' <= *p && *p <= '9') n.push_back(*p++);
+  return n.empty() ? 0 : atoi(n.c_str());
 }
 
 // ----------------------------------------------------------------------------
@@ -51,15 +104,23 @@ int main(int argc, char *argv[])
             " the center of the bounding boxes are computed and stored in the CSV file. This\n"
             " allows the recovery of the global animation from the cropped image sequence.\n");
   // Command-line options
-  const char *ifname  = cimg_option("-i", "",    "Input sequence, e.g., movie.mov or movie_\%05d.png.");
-  const char *ofname  = cimg_option("-o", "",    "Output sequence, e.g., cropped.mov or cropped.png.");
-  const char *csvname = cimg_option("-c", "",    "Output CSV spreadsheet for pixel coordinates.");
-  int         fbegin  = cimg_option("-b", 0,     "Index of first frame of image sequence.");
-  int         fstride = cimg_option("-s", 1,     "Increment/Stride of image frame indices.");
-  int         fend    = cimg_option("-e", -1,    "Index of last frame of image sequence.");
-  bool        bbunion = cimg_option("-u", false, "Crop all images using the union of all bounding boxes.");
-  bool        bbfixed = cimg_option("-f", false, "Crop all images using a fixed size bounding box.");
-  int         verbose = cimg_option("-v", 0,     "Verbosity of output messages (0: none, 1: status, 2: debug).");
+  char default_ifname[32];
+  bool   append         = cimg_option("-a", false, "Process single image file and append to existing CSV spreadsheet.");
+  string ifname         = cimg_option("-i", "animation_000000.png",   "Input sequence, e.g., movie.mov, movie_000.png, or movie_\%06d.png.");
+  string default_ofname = append ? ifname : remove_pattern(ifname);
+  string ofname  = cimg_option("-o", default_ofname.c_str(),  "Output sequence, e.g., cropped.mov or cropped.png.");
+  string default_csvname = replace_extension(append ? remove_pattern(ofname) : ofname, ".csv");
+  string csvname = cimg_option("-c", default_csvname.c_str(), "Output CSV spreadsheet for pixel coordinates. (false: no output)");
+  // Replace _[0-9]+ pattern of input filename by format string
+  int fbegin = get_frame_number(ifname);
+  if (default_ofname != ifname) ifname = replace_pattern (ifname, "_\%06d", fbegin);
+  // Remaining command-line options
+         fbegin  = cimg_option("-b", fbegin, "Index of first frame of image sequence.");
+  int    fend    = cimg_option("-e", -1,     "Index of last frame of image sequence.");
+  int    fstride = cimg_option("-s", 1,      "Increment/Stride of image frame indices.");
+  bool   bbunion = cimg_option("-u", false,  "Crop all images using the union of all bounding boxes.");
+  bool   bbfixed = cimg_option("-f", false,  "Crop all images using a fixed size bounding box.");
+  int    verbose = cimg_option("-v", 0,      "Verbosity of output messages. (0: none, 1: status, 2: debug)");
   // CImg info
   if (verbose > 2) cimg::info();
   // Check arguments
@@ -70,7 +131,7 @@ int main(int argc, char *argv[])
       exit(0);
     }
   }
-  if (!ifname[0] || !ofname[0]) {
+  if (ifname.empty() || ofname.empty()) {
     fprintf(stderr, "No input or output image sequence specified!\n");
     exit(1);
   }
@@ -84,9 +145,9 @@ int main(int argc, char *argv[])
   }
   // Ensure that all frames of output sequence have same size
   // if output format can store sequence in single file
-  bbfixed = bbfixed || CImgList<>::is_saveable(ofname);
+  bbfixed = bbfixed || CImgList<>::is_saveable(ofname.c_str());
   // Read input sequence
-  if (verbose) { printf("Read image sequence from %s...", ifname); fflush(stdout); }
+  if (verbose) { printf("Read image sequence from %s...", ifname.c_str()); fflush(stdout); }
   CImgList<unsigned char> seq;
   try {
     if (contains_pattern(ifname)) {
@@ -97,7 +158,7 @@ int main(int argc, char *argv[])
           fprintf(stderr, "Error: Too many input frames...!\n");
           exit(1);
         }
-        snprintf(buffer, 1024, ifname, frame);
+        snprintf(buffer, 1024, ifname.c_str(), frame);
         FILE *tmp = fopen(buffer, "r");
         if (!tmp) {
           if (frame > fbegin && fend < 0) break;
@@ -111,7 +172,7 @@ int main(int argc, char *argv[])
         seq.push_back(img);
       }
     } else {
-      seq.assign(ifname);
+      seq.assign(ifname.c_str());
     }
   } catch(const CImgException &err) {
     if (verbose) { printf(" failed\n"); fflush(stdout); }
@@ -148,8 +209,8 @@ int main(int argc, char *argv[])
     if (verbose > 1) {
       const int cx = (bb[frame](0,0) + bb[frame](0,1))/2;
       const int cy = (bb[frame](1,0) + bb[frame](1,1))/2;
-      printf("frame %3d: x=[%6d,%6d], y=[%6d,%6d], c=[%6d,%6d]\n",
-          frame, bb[frame](0,0), bb[frame](0,1), bb[frame](1,0), bb[frame](1,1), cx, cy);
+      printf("frame %6d: x=[%6d,%6d], y=[%6d,%6d], c=[%6d,%6d]\n",
+          fbegin + frame * fstride, bb[frame](0,0), bb[frame](0,1), bb[frame](1,0), bb[frame](1,1), cx, cy);
     }
   }
   // Adjust bounding boxes
@@ -200,8 +261,8 @@ int main(int argc, char *argv[])
   if (verbose) { printf(" done\n"); fflush(stdout); }
   // Write output sequence
   try {
-    if (verbose) { printf("Writing cropped sequence to %s...", ofname); fflush(stdout); }
-    seq.save(ofname);
+    if (verbose) { printf("Writing cropped sequence to %s...", ofname.c_str()); fflush(stdout); }
+    seq.save(ofname.c_str());
     if (verbose) { printf(" done\n"); fflush(stdout); }
   } catch (const CImgException &err) {
     printf(" failed\n");
@@ -210,15 +271,25 @@ int main(int argc, char *argv[])
     exit(1);
   }
   // Write spreadsheet
-  if (csvname[0]) {
-    int px = -1, py = -1;
-    FILE *csv = fopen(csvname, "w");
+  if (!csvname.empty() && csvname != "false" && csvname != "no" && csvname != "0") {
+    FILE *csv = NULL;
+    if (append) {
+      csv = fopen(csvname.c_str(), "r");
+      if (csv) {
+        fclose(csv);
+        csv = fopen(csvname.c_str(), "a");
+      }
+    }
     if (!csv) {
-      fprintf(stderr, "Failed to open spreadsheet file %s!\n", csvname);
+      csv = fopen(csvname.c_str(), "w");
+      if (csv) fprintf(csv, " frame,     sx,     sy,     x0,     y0,     x1,     y1,     cx,     cy,     ox,     oy\n");
+    }
+    if (!csv) {
+      fprintf(stderr, "Failed to open spreadsheet file %s!\n", csvname.c_str());
       exit(1);
     }
-    if (verbose) { printf("Writing bounding boxes to %s...", csvname); fflush(stdout); }
-    fprintf(csv, "frame,     sx,     sy,     x0,     y0,     x1,     y1,     cx,     cy,     ox,     oy\n");
+    if (verbose) { printf("Writing bounding boxes to %s...", csvname.c_str()); fflush(stdout); }
+    int px = -1, py = -1;
     cimglist_for(bb,frame) {
       const int x0 = bb[frame](0,0);
       const int x1 = bb[frame](0,1);
@@ -230,8 +301,8 @@ int main(int argc, char *argv[])
       const int cy = (y0 + y1)/2;
       const int ox = (px == -1) ? 0 : (cx - px);
       const int oy = (py == -1) ? 0 : (cy - py);
-      fprintf(csv, "%5d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d\n",
-                   frame, sx, sy, x0, y0, x1, y1, cx, cy, ox, oy);
+      fprintf(csv, "%6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d\n",
+                   fbegin + frame * fstride, sx, sy, x0, y0, x1, y1, cx, cy, ox, oy);
       px = cx, py = cy;
     }
     fclose(csv);
