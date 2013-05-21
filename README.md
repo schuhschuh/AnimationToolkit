@@ -31,9 +31,11 @@ INSTALLATION
 
 Installer packages for The Animation Toolkit can be downloaded from [here][7].
 At the moment, only Intel-based Apple computers running Mac OS X >=10.7
-are supported. Double click the installer (.mpkg file) and follow the instructions
-on screen. This will install the [basic tools](#tools) into the folder
-`/opt/animationtoolkit/bin`.
+are supported.
+
+Download the most recent **[Mac OS X Installer Package][8]**. Double click the
+installer (.mpkg file) and follow the instructions on screen. This will install
+the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`.
 
 Additionally, some useful [Automator Workflows](#workflows) which make use
 of the basic tools of the toolkit and are more convenient to use are installed
@@ -184,3 +186,4 @@ CMake Options
 [5]: http://www.apple.com/osx/apps/all.html#terminal
 [6]: http://windows.microsoft.com/en-gb/windows-vista/command-prompt-frequently-asked-questions
 [7]: https://projects.andreasschuh.com/projects/animationtoolkit/files
+[8]: https://projects.andreasschuh.com/attachments/download/51/AnimationToolkit-0.1-Darwin.dmg
