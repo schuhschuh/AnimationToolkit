@@ -92,4 +92,4 @@ resulting cropped frames to separate PNG files.
 [1]: https://github.com/schuhschuh/AnimationToolkit
 [2]: http://www.gnu.org/licenses/
 [3]: https://github.com/schuhschuh/AnimationToolkit/blob/master/README.md
-[4]: https://github.com/schuhschuh/AnimationToolkit/archive/workflows-v0.1.zip
+[4]: https://github.com/schuhschuh/AnimationToolkit/archive/workflows-0.1.zip
