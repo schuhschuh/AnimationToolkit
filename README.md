@@ -26,12 +26,15 @@ You should have received a copy of the GNU General Public License along with
 The Animation Toolkit. If not, see <http://www.gnu.org/licenses/>.
 
 
+<a id="install"></a>
 INSTALLATION
 ============
 
 Download the most recent **[Mac OS X Installer Package][8]**. Double click the
 installer (.mpkg file) and follow the instructions on screen. This will install
-the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`.
+the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`. If you
+would like to remove the installed files later again, simply follow the
+instructions [below](#deinstall).
 
 Automator Workflows which automatize and simplify the use of these basic tools
 can be installed separately by downloading the
@@ -126,6 +129,16 @@ CMake Options
 -------------
 
 - `CMAKE_INSTALL_PREFIX`: Root directory used for the installation of the tools.
+
+
+<a id="deinstall"></a>
+DEINSTALLATION
+==============
+
+To remove the files of The Animation Toolkit again, open a Terminal window and
+type the following command and press enter:
+
+    rm -rf /opt/animationtoolkit
 
 
 
