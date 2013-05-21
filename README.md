@@ -37,9 +37,9 @@ Download the most recent **[Mac OS X Installer Package][8]**. Double click the
 installer (.mpkg file) and follow the instructions on screen. This will install
 the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`.
 
-Automator Workflows for Mac OS X which automatize and simplify the use of these
-basic tools can be installed separately by downloading the
-[The Animation Toolkit Workflows][8] package.
+Automator Workflows which automatize and simplify the use of these basic tools
+can be installed separately by downloading the
+**[The Animation Toolkit Workflows][9]** package for Mac OS X users.
 
 
 <a id="tools"></a>
