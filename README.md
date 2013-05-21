@@ -156,7 +156,7 @@ If you have write permissions to the /opt directory, the sudo can be omitted.
 [5]: http://www.apple.com/osx/apps/all.html#terminal
 [6]: http://windows.microsoft.com/en-gb/windows-vista/command-prompt-frequently-asked-questions
 [7]: https://projects.andreasschuh.com/projects/animationtoolkit/files
-[8]: https://projects.andreasschuh.com/attachments/download/52/AnimationToolkit-0.1-Darwin.dmg
+[8]: https://projects.andreasschuh.com/attachments/download/53/AnimationToolkit-0.1-Darwin.dmg
 [9]: https://github.com/schuhschuh/AnimationToolkit/tree/workflows
 [10]: http://www.ffmpeg.org/
 [11]: http://www.evermeet.cx/ffmpeg/
