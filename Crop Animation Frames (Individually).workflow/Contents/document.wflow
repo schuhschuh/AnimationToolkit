@@ -205,7 +205,7 @@ done</string>
 	<key>workflowMetaData</key>
 	<dict>
 		<key>folderActionFolderPath</key>
-		<string></string>
+		<string>~/Crop Animation Frames (Individually)</string>
 		<key>workflowTypeIdentifier</key>
 		<string>com.apple.Automator.folderAction</string>
 	</dict>
