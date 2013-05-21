@@ -147,14 +147,14 @@ int main(int argc, char *argv[])
   // if output format can store sequence in single file
   bbfixed = bbfixed || CImgList<>::is_saveable(ofname.c_str());
   // Read input sequence
-  if (verbose) { printf("Read image sequence from %s...", ifname.c_str()); fflush(stdout); }
+  if (verbose > 1) { printf("Read image sequence from %s...", ifname.c_str()); fflush(stdout); }
   CImgList<unsigned char> seq;
   try {
     if (contains_pattern(ifname)) {
       char buffer[1024];
       for (int frame = fbegin; fend < 0 || frame <= fend; frame += fstride) {
         if (frame > 1e6) {
-          if (verbose) { printf(" failed\n"); fflush(stdout); }
+          if (verbose > 1) { printf(" failed\n"); fflush(stdout); }
           fprintf(stderr, "Error: Too many input frames...!\n");
           exit(1);
         }
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         FILE *tmp = fopen(buffer, "r");
         if (!tmp) {
           if (frame > fbegin && fend < 0) break;
-          if (verbose) { printf(" failed\n"); fflush(stdout); }
+          if (verbose > 1) { printf(" failed\n"); fflush(stdout); }
           fprintf(stderr, "Error: Cannot read frame %d of image sequence."
                           " Expected to find it in file %s!\n", frame, buffer);
           exit(1);
@@ -175,25 +175,27 @@ int main(int argc, char *argv[])
       seq.assign(ifname.c_str());
     }
   } catch(const CImgException &err) {
-    if (verbose) { printf(" failed\n"); fflush(stdout); }
+    if (verbose > 1) { printf(" failed\n"); fflush(stdout); }
     fprintf(stderr, "Error: %s\n", err.what());
     exit(1);
   }
   if (seq.size() < 1) {
-    if (verbose) { printf(" failed\n"); fflush(stdout); }
+    if (verbose > 1) { printf(" failed\n"); fflush(stdout); }
     fprintf(stderr, "Error: Input image sequence is empty!\n");
     exit(1);
   }
-  if (verbose) { printf(" done\n"); fflush(stdout); }
-  if (verbose > 1) {
+  if (verbose > 1) { printf(" done\n"); fflush(stdout); }
+  const int w = seq.front().width();
+  const int h = seq.front().height();
+  if (verbose) {
     printf("\n");
     printf("#frames: %d\n", seq.size());
-    printf("width:   %d\n", seq.front().width());
-    printf("height:  %d\n", seq.front().height());
+    printf("width:   %d\n", w);
+    printf("height:  %d\n", h);
     printf("\n");
   }
   // Determine crop regions
-  if (verbose) {
+  if (verbose > 1) {
     printf("Determine bounding boxes...");
     if (verbose > 1) printf("\n\n");
     fflush(stdout);
@@ -206,7 +208,7 @@ int main(int argc, char *argv[])
     bb[frame](0,1) += (bb[frame](0,1) - bb[frame](0,0) + 1) % 2;
     bb[frame](1,1) += (bb[frame](1,1) - bb[frame](1,0) + 1) % 2;
     // Print crop region
-    if (verbose > 1) {
+    if (verbose) {
       const int cx = (bb[frame](0,0) + bb[frame](0,1))/2;
       const int cy = (bb[frame](1,0) + bb[frame](1,1))/2;
       printf("frame %6d: x=[%6d,%6d], y=[%6d,%6d], c=[%6d,%6d]\n",
@@ -252,18 +254,18 @@ int main(int argc, char *argv[])
       printf("union:     x=[%6d,%6d], y=[%6d,%6d], c=[%6d,%6d]\n", x0, x1, y0, y1, cx, cy);
     }
   }
-  if (verbose) { if (verbose == 1) printf(" done"); printf("\n"); fflush(stdout); }
+  if (verbose > 1) { if (verbose == 1) printf(" done"); printf("\n"); fflush(stdout); }
   // Crop images
-  if (verbose) { printf("Crop frames of image sequence..."); fflush(stdout); }
+  if (verbose > 1) { printf("Crop frames of image sequence..."); fflush(stdout); }
   cimglist_for(seq,frame) {
     seq[frame].crop(bb[frame](0,0), bb[frame](1,0), bb[frame](0,1), bb[frame](1,1));
   }
-  if (verbose) { printf(" done\n"); fflush(stdout); }
+  if (verbose > 1) { printf(" done\n"); fflush(stdout); }
   // Write output sequence
   try {
-    if (verbose) { printf("Writing cropped sequence to %s...", ofname.c_str()); fflush(stdout); }
+    if (verbose > 1) { printf("Writing cropped sequence to %s...", ofname.c_str()); fflush(stdout); }
     seq.save(ofname.c_str());
-    if (verbose) { printf(" done\n"); fflush(stdout); }
+    if (verbose > 1) { printf(" done\n"); fflush(stdout); }
   } catch (const CImgException &err) {
     printf(" failed\n");
     fflush(stdout);
@@ -282,31 +284,31 @@ int main(int argc, char *argv[])
     }
     if (!csv) {
       csv = fopen(csvname.c_str(), "w");
-      if (csv) fprintf(csv, " frame,     sx,     sy,     x0,     y0,     x1,     y1,     cx,     cy,     ox,     oy\n");
+      if (csv) fprintf(csv, " frame,     iw,     ih,     ow,     oh,     cx,     cy,     dx,     dy,     x0,     y0,     x1,     y1\n");
     }
     if (!csv) {
       fprintf(stderr, "Failed to open spreadsheet file %s!\n", csvname.c_str());
       exit(1);
     }
-    if (verbose) { printf("Writing bounding boxes to %s...", csvname.c_str()); fflush(stdout); }
+    if (verbose > 1) { printf("Writing crop regions to %s...", csvname.c_str()); fflush(stdout); }
     int px = -1, py = -1;
     cimglist_for(bb,frame) {
-      const int x0 = bb[frame](0,0);
-      const int x1 = bb[frame](0,1);
-      const int y0 = bb[frame](1,0);
-      const int y1 = bb[frame](1,1);
-      const int sx = x1 - x0;
-      const int sy = y1 - y0;
+      const int x0 = bb [frame](0,0);
+      const int x1 = bb [frame](0,1);
+      const int y0 = bb [frame](1,0);
+      const int y1 = bb [frame](1,1);
+      const int rw = x1 - x0 + 1;
+      const int rh = y1 - y0 + 1;
       const int cx = (x0 + x1)/2;
       const int cy = (y0 + y1)/2;
-      const int ox = (px == -1) ? 0 : (cx - px);
-      const int oy = (py == -1) ? 0 : (cy - py);
-      fprintf(csv, "%6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d\n",
-                   fbegin + frame * fstride, sx, sy, x0, y0, x1, y1, cx, cy, ox, oy);
+      const int dx = (px == -1) ? 0 : (cx - px);
+      const int dy = (py == -1) ? 0 : (cy - py);
+      fprintf(csv, "%6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d\n",
+                   fbegin + frame * fstride, w, h, rw, rh, cx, cy, dx, dy, x0, y0, x1, y1);
       px = cx, py = cy;
     }
     fclose(csv);
-    if (verbose) { printf(" done\n"); fflush(stdout); }
+    if (verbose > 1) { printf(" done\n"); fflush(stdout); }
   }
   return 0;
 }
