@@ -26,15 +26,15 @@ You should have received a copy of the GNU General Public License along with
 The Animation Toolkit. If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="install"></a>
+<a id="installation"></a>
 INSTALLATION
 ============
 
 Download the most recent **[Mac OS X Installer Package][8]**. Double click the
 installer (.mpkg file) and follow the instructions on screen. This will install
-the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`. If you
-would like to remove the installed files later again, simply follow the
-instructions [below](#deinstall).
+the [basic tools](#basic-tools) into the folder `/opt/animationtoolkit/bin`.
+If you would like to remove the installed files later again, simply follow the
+instructions [below](#deinstallation).
 
 Automator Workflows which automatize and simplify the use of these basic tools
 can be installed separately by downloading the
@@ -42,10 +42,11 @@ can be installed separately by downloading the
 
 Other installer packages can be downloaded from [here][7]. At the moment, only
 installers for Intel-based Apple computers running Mac OS X >=10.7 are provided.
-The Animation Toolkit has to be [built from sources](#build) on other platforms.
+The Animation Toolkit has to be [built from sources](#building-the-software-from-sources)
+on other platforms.
 
 
-<a id="tools"></a>
+<a id="basic-tools"></a>
 BASIC TOOLS
 ===========
 
@@ -82,7 +83,7 @@ allows the recovery of the global animation from the cropped image sequence.
     -v <int>          Verbosity of output messages (0: none, 1: status, 2: debug).
 
 
-<a id="build"></a>
+<a id="building-the-software-from-sources"></a>
 BUILDING THE SOFTWARE FROM SOURCES
 ==================================
 
@@ -131,7 +132,7 @@ CMake Options
 - `CMAKE_INSTALL_PREFIX`: Root directory used for the installation of the tools.
 
 
-<a id="deinstall"></a>
+<a id="deinstallation"></a>
 DEINSTALLATION
 ==============
 
