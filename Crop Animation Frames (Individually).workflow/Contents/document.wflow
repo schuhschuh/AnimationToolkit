@@ -61,8 +61,8 @@
 					<key>COMMAND_STRING</key>
 					<string>
 PATH=/opt/animationtoolkit/bin:/usr/bin:/bin:/usr/local/bin:/usr/X11/bin
-LOG="$(dirname "$1")/.crop-frames.log"
 PREFIX="Cropped Animation Frames (Individually)/"
+LOG="$(dirname "$1")/$PREFIX/Workflow.log"
 
 # Remove existing log file when it exceeds 10MB
 if [ -f "$LOG" ]; then
@@ -70,7 +70,7 @@ if [ -f "$LOG" ]; then
 fi
 # Process each file passed as argument
 name="$(basename "$1")"
-if [[ -f "$1" ]] &amp;&amp; [[ $name =~ \.(bmp|png|jpg|jpeg|mov|flv|m1v|m2v|m4v|avi|wmv|mpg|mpeg)$ ]]; then
+if [[ -f "$1" ]] &amp;&amp; [[ $name =~ \.(bmp|BMP|png|PNG|jpg|JPG|jpeg|JPEG|mov|MOV|flv|FLV|m1v|M1V|m2v|M2V|m4v|M4V|avi|AVI|wmv|WMV|mpg|MPG|mpeg|MPEG)$ ]]; then
   o="$(dirname "$1")/$PREFIX$name"
   mkdir -p "$(dirname "$o")"
   echo "$(date)" &gt;&gt; "$LOG" 2&gt;&amp;1
