@@ -119,7 +119,11 @@ endmacro ()
 
 # -----------------------------------------------------------------------------
 # install Mac OS X workflow
+#
+# Attentation: Only working if software is built and installed on same system!
+#              Not for use by package installation.
 macro (install_workflow src)
+  file (MAKE_DIRECTORY "$ENV{HOME}/Library/Workflows/Applications/Folder Actions")
   install (
     DIRECTORY   "${src}.workflow"
     DESTINATION "$ENV{HOME}/Library/Workflows/Applications/Folder Actions"
