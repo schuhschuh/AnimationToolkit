@@ -29,17 +29,17 @@ The Animation Toolkit. If not, see <http://www.gnu.org/licenses/>.
 INSTALLATION
 ============
 
-Installer packages for The Animation Toolkit can be downloaded from [here][7].
-At the moment, only Intel-based Apple computers running Mac OS X >=10.7
-are supported.
-
 Download the most recent **[Mac OS X Installer Package][8]**. Double click the
 installer (.mpkg file) and follow the instructions on screen. This will install
 the [basic tools](#tools) into the folder `/opt/animationtoolkit/bin`.
 
 Automator Workflows which automatize and simplify the use of these basic tools
 can be installed separately by downloading the
-**[The Animation Toolkit Workflows][9]** package for Mac OS X users.
+[The Animation Toolkit Workflows][9] package for Mac OS X users.
+
+Other installer packages can be downloaded from [here][7]. At the moment, only
+installers for Intel-based Apple computers running Mac OS X >=10.7 are provided.
+The Animation Toolkit has to be [built from sources](#build) on other platforms.
 
 
 <a id="tools"></a>
