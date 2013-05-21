@@ -206,7 +206,7 @@ done</string>
 	<key>workflowMetaData</key>
 	<dict>
 		<key>folderActionFolderPath</key>
-		<string>~/Desktop/Crop Frames/Fixed Size</string>
+		<string></string>
 		<key>workflowTypeIdentifier</key>
 		<string>com.apple.Automator.folderAction</string>
 	</dict>
