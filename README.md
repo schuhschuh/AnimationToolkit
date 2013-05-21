@@ -41,7 +41,7 @@ can be installed separately by downloading the
 [The Animation Toolkit Workflows][9] package for Mac OS X users.
 
 Other installer packages can be downloaded from [here][7]. At the moment, only
-installers for Intel-based Apple computers running Mac OS X >=10.7 are provided.
+installers for Intel 64-bit Apple computers running Mac OS X >=10.7 are provided.
 The Animation Toolkit has to be [built from sources](#building-the-software-from-sources)
 on other platforms.
 
@@ -142,9 +142,10 @@ DEINSTALLATION
 ==============
 
 To remove the files of The Animation Toolkit again, open a Terminal window and
-type the following command and press enter:
+type the following command and press enter. It will require your user password.
+If you have write permissions to the /opt directory, the sudo can be omitted.
 
-    rm -rf /opt/animationtoolkit
+    sudo rm -rf /opt/animationtoolkit
 
 
 
