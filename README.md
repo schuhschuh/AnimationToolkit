@@ -43,8 +43,8 @@ into the folder `/Users/<user>/Library/Workflows/Applications/Folder Actions`.
 
 
 <a id="workflows"></a>
-MAC OS WORKFLOWS
-================
+MAC OS X WORKFLOWS
+==================
 
 In a nutshell, Folder Actions are scripts that can be attached to folders.
 They enable events (actions) to take place when items are added or removed from
