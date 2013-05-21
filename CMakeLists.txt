@@ -15,7 +15,7 @@ cmake_minimum_required (VERSION 2.6)
 # -----------------------------------------------------------------------------
 # project attributes
 set (PROJECT_NAME    AnimationToolkit)
-set (PROJECT_VERSION 1.2)
+set (PROJECT_VERSION 0.1)
 
 project (${PROJECT_NAME})
 
