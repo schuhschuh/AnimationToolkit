@@ -94,6 +94,8 @@ int get_frame_number(const string &str)
 // ----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+  int px = -1, py = -1;
+
   // Command help
   cimg_usage("[options] -i animation.mov  -o frames.png [-c coords.csv]\n"
 "              [options] -i frames_\%6d.png -o frames.png [-c coords.csv]\n"
@@ -211,29 +213,24 @@ int main(int argc, char *argv[])
     bb[frame](1,1) += (bb[frame](1,1) - bb[frame](1,0) + 1) % 2;
     // Print crop region
     if (verbose) {
-      const int cx = (bb[frame](0,0) + bb[frame](0,1))/2;
-      const int cy = (bb[frame](1,0) + bb[frame](1,1))/2;
-      printf("frame %6d: x=[%6d,%6d], y=[%6d,%6d], c=[%6d,%6d]\n",
-          fbegin + frame * fstride, bb[frame](0,0), bb[frame](0,1), bb[frame](1,0), bb[frame](1,1), cx, cy);
+      const int x0 = bb[frame](0,0);
+      const int x1 = bb[frame](0,1);
+      const int y0 = bb[frame](1,0);
+      const int y1 = bb[frame](1,1);
+      const int rw = x1 - x0 + 1;
+      const int rh = y1 - y0 + 1;
+      const int cx = (x0 + x1)/2;
+      const int cy = (y0 + y1)/2;
+      const int dx = (px == -1) ? 0 : (cx - px);
+      const int dy = (py == -1) ? 0 : (cy - py);
+      printf("%6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d, %6d\n",
+             fbegin + frame * fstride, w, h, rw, rh, cx, cy, dx, dy, x0, y0, x1, y1);
+      fflush(stdout);
+      px = cx, py = cy;
     }
   }
   // Adjust bounding boxes
-  if (bbfixed) {
-    int fx = 0;
-    int fy = 0;
-    cimglist_for(bb,frame) {
-      fx = cimg::max(fx, bb[frame](0,1) - bb[frame](0,0) + 1);
-      fy = cimg::max(fy, bb[frame](1,1) - bb[frame](1,0) + 1);
-    }
-    cimglist_for(bb,frame) {
-      const int sx = bb[frame](0,1) - bb[frame](0,0);
-      const int sy = bb[frame](1,1) - bb[frame](1,0);
-      bb[frame](0,0) -= (fx - sx)     / 2;
-      bb[frame](0,1) += (fx - sx + 1) / 2;
-      bb[frame](1,0) -= (fy - sy)     / 2;
-      bb[frame](1,1) += (fy - sy + 1) / 2;
-    }
-  } else if (bbunion) {
+  if (bbunion) {
     int x0 = seq.front().width();
     int x1 = -1;
     int y0 = seq.front().height();
@@ -254,6 +251,21 @@ int main(int argc, char *argv[])
       const int cx = (x0 + x1)/2;
       const int cy = (y0 + y1)/2;
       printf("union:     x=[%6d,%6d], y=[%6d,%6d], c=[%6d,%6d]\n", x0, x1, y0, y1, cx, cy);
+    }
+  } else if (bbfixed) {
+    int fx = 0;
+    int fy = 0;
+    cimglist_for(bb,frame) {
+      fx = cimg::max(fx, bb[frame](0,1) - bb[frame](0,0) + 1);
+      fy = cimg::max(fy, bb[frame](1,1) - bb[frame](1,0) + 1);
+    }
+    cimglist_for(bb,frame) {
+      const int sx = bb[frame](0,1) - bb[frame](0,0);
+      const int sy = bb[frame](1,1) - bb[frame](1,0);
+      bb[frame](0,0) -= (fx - sx)     / 2;
+      bb[frame](0,1) += (fx - sx + 1) / 2;
+      bb[frame](1,0) -= (fy - sy)     / 2;
+      bb[frame](1,1) += (fy - sy + 1) / 2;
     }
   }
   if (verbose > 1) { if (verbose == 1) printf(" done"); printf("\n"); fflush(stdout); }
@@ -293,7 +305,7 @@ int main(int argc, char *argv[])
       exit(1);
     }
     if (verbose > 1) { printf("Writing crop regions to %s...", csvname.c_str()); fflush(stdout); }
-    int px = -1, py = -1;
+    px = -1, py = -1;
     cimglist_for(bb,frame) {
       const int x0 = bb [frame](0,0);
       const int x1 = bb [frame](0,1);
