@@ -77,9 +77,9 @@ has minimum size. It adds all information regarding the crop to a CSV
 spreadsheet file which has the same name as the animation file(s).
 
 For example, dropping the file `animation_000000.png` into the folder,
-will create a new image `Cropped/animation_000000.png` which is cropped
-using the minimal bounding box surrounding the object in this frame.
-The corresponding CSV spreadsheet is named `Cropped/animation.csv`.
+will create a new image `Cropped Animation/animation_000000.png` which is
+cropped using the minimal bounding box surrounding the object in this frame.
+The corresponding CSV spreadsheet is named `Cropped Animation/animation.csv`.
 Dropping another frame of the animation, e.g., `animation_000001.png` into
 the folder will create the cropped image `Cropped/animation_000001.png`
 and append the information of the crop region to the existing spreadsheet
@@ -93,6 +93,9 @@ to crop each frame individually to the minimum size as described above.
 The cropped movie is written to the file `Cropped/animation.mov` and the
 crop information added to the spreadsheet `Cropped/animation.csv`.
 
+A log file is written to `Cropped Animation/Workflow.log` which can help
+to identify problems that prevent the successful execution of the workflow.
+
 
 <a id="crop-animation-min-size-png"></a>
 Crop Animation (Min Size PNG)
@@ -100,7 +103,8 @@ Crop Animation (Min Size PNG)
 
 Does the same as the [Crop Animation](#crop-animation) Folder Action,
 but always outputs a sequence of PNG images, each cropped to the
-minimum size.
+minimum size. The cropped animations can be found in the
+`Cropped Animation (Min Size PNG)` subfolder.
 
 
 <a id="crop-animation-one-size-png"></a>
@@ -109,7 +113,8 @@ Crop Animation (One Size PNG)
 
 Does the same as the [Crop Animation](#crop-animation) Folder Action,
 but always outputs a sequence of PNG images, where all frames of an
-animation are cropped to the same minimum size.
+animation are cropped to the same minimum size. The cropped animations
+can be found in the `Cropped Animation (One Size PNG)` subfolder.
 
 
 <a id="crop-animation-same-box-png"></a>
@@ -119,8 +124,8 @@ Crop Animation (Same Box PNG)
 Does the same as the [Crop Animation](#crop-animation) Folder Action,
 but always outputs a sequence of PNG images, where all frames of an
 animation are cropped using the bounding box which covers the object
-in all frames of the animation.
-
+in all frames of the animation. The cropped animations can be found
+in the `Cropped Animation (Same Box PNG)` subfolder.
 
 
 
