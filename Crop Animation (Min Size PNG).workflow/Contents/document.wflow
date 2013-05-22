@@ -61,8 +61,9 @@
 					<key>COMMAND_STRING</key>
 					<string>
 PATH=/opt/animationtoolkit/bin:/usr/bin:/bin:/usr/local/bin:/usr/X11/bin
-PREFIX="Cropped Animation Frames (Individually)/"
+PREFIX="Cropped Animation (Min Size PNG)/"
 LOG="$(dirname "$1")/$PREFIX/Workflow.log"
+EXT=.png
 
 # Remove existing log file when it exceeds 10MB
 if [ -f "$LOG" ]; then
@@ -71,10 +72,10 @@ fi
 # Process each file passed as argument
 while [ $# -gt 0 ]; do
   if [[ -f "$1" ]]; then
-    name="$(basename "$1")"
+  name="$(basename "$1")"
     if [[ $name =~ \.(mov|MOV|flv|FLV|m1v|M1V|m2v|M2V|m4v|M4V|avi|AVI|wmv|WMV|mpg|MPG|mpeg|MPEG)$ ]] || \
        [[ $name =~ _[0-9][0-9]*\.(bmp|BMP|png|PNG|jpg|JPG|jpeg|JPEG)$ ]]; then
-      o="$(dirname "$1")/$PREFIX$name"
+      o="$(dirname "$1")/$PREFIX${name%.*}$EXT"
       mkdir -p "$(dirname "$o")"
       echo "$(date)" &gt;&gt; "$LOG" 2&gt;&amp;1
       echo "\"$(which crop-frames)\" -i \"$1\" -o \"$o\" -a true -v 2" &gt;&gt; "$LOG" 2&gt;&amp;1
@@ -109,7 +110,7 @@ done
 				<key>Class Name</key>
 				<string>RunShellScriptAction</string>
 				<key>InputUUID</key>
-				<string>8724CBDB-BA31-494C-ABFB-DE7D832C284B</string>
+				<string>93CE42D6-BEF1-4FAF-B7E6-EF15C7E08939</string>
 				<key>Keywords</key>
 				<array>
 					<string>Shell</string>
@@ -119,9 +120,9 @@ done
 					<string>Unix</string>
 				</array>
 				<key>OutputUUID</key>
-				<string>6D6C71D5-BC7D-447A-B38B-FCD7514F65DD</string>
+				<string>F19719CD-3502-4DE5-A8FE-6AF9B4C7BEEE</string>
 				<key>UUID</key>
-				<string>E0237648-FBC1-4DF2-AD4A-F6D4FF090B21</string>
+				<string>BA9E797F-DFAC-4862-826D-B7364BA1D50F</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>Automator</string>

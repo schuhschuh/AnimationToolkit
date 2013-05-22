@@ -54,47 +54,73 @@ Therefore, follow the installation instructions given [here][3] if not done yet.
 FOLDER ACTIONS
 ==============
 
-In a nutshell, Folder Actions are scripts that can be attached to folders.
-They enable events (actions) to take place when items are added or removed from
-that folder. Events can also occur when the folder is opened, closed or moved.
+In a nutshell, Folder Actions are programs (scripts) that can be attached to
+folders. They enable events (actions) to take place when items are added or
+removed from that folder. Events can also occur when the folder is opened,
+closed or moved.
 
 The Animation Toolkit provides the following Folder Actions:
 
-- [Crop Animation Frames (Individually)](#crop-animation-frames-individually)
-- [Crop Animation Frames (Fixed Size)](#crop-animation-frames-fixed)
+- [Crop Animation](#crop-animation)
+- [Crop Animation (Min Size PNG)](#crop-animation-min-size-png)
+- [Crop Animation (One Size PNG)](#crop-animation-one-size-png)
+- [Crop Animation (Same Box PNG)](#crop-animation-same-box-png)
 
 
-<a id="crop-animation-frames-individually"></a>
-Crop Animation Frames (Individually)
-------------------------------------
+<a id="crop-animation"></a>
+Crop Animation
+--------------
 
-This Folder Action processes each animation file separately, appending the pixel
-coordinates of the crop region to a CSV spreadsheet file which has the same name
-as the animation frames.
-For example, copy the file animation_000000.png into the folder which the
-action is attached to. This will create a cropped image
-Cropped/animation_000000.png and store the coordinates in the spreadsheet
-Cropped/animation.csv. Copying the file animation_000001.png into the
-folder will create the cropped image Cropped/animation_000001.png and append
-the coordinates to the existing spreadsheet Cropped/animation.csv.
+This Folder Action crops each frame of an animation dropped into the folder
+the action is attached to (i.e., the Desktop by default) such that the output
+has minimum size. It adds all information regarding the crop to a CSV
+spreadsheet file which has the same name as the animation file(s).
 
-If a movie file such as animation.mov is copied into the folder, each frame
-of the movie is cropped using the bounding box which covers the object in all
-frames of the movie and writes the resulting movie to the file
-Cropped/animation.mov along with the spreadsheet Cropped/animation.csv.
+For example, dropping the file `animation_000000.png` into the folder,
+will create a new image `Cropped/animation_000000.png` which is cropped
+using the minimal bounding box surrounding the object in this frame.
+The corresponding CSV spreadsheet is named `Cropped/animation.csv`.
+Dropping another frame of the animation, e.g., `animation_000001.png` into
+the folder will create the cropped image `Cropped/animation_000001.png`
+and append the information of the crop region to the existing spreadsheet
+`Cropped/animation.csv`.
+
+If a movie such as `animation.mov` is dropped into the folder, however,
+each frame of the movie is cropped using the bounding box which covers
+the object in all frames of the movie. Use the Folder Action
+[Crop Animation (Min Size PNG)](#crop-animation-min-size-png) instead
+to crop each frame individually to the minimum size as described above.
+The cropped movie is written to the file `Cropped/animation.mov` and the
+crop information added to the spreadsheet `Cropped/animation.csv`.
 
 
-<a id="crop-animation-frames-fixed"></a>
-Crop Animation Frames (Fixed Size)
-----------------------------------
+<a id="crop-animation-min-size-png"></a>
+Crop Animation (Min Size PNG)
+-----------------------------
 
-This Folder Action processes the image sequences similar to the
-[Crop Animation Frames (Individually)](#action-crop-frames-individually).
+Does the same as the [Crop Animation](#crop-animation) Folder Action,
+but always outputs a sequence of PNG images, each cropped to the
+minimum size.
 
-If a movie file such as animation.mov is copied into the folder, however,
-each frame of the movie is cropped using the smallest fixed size bounding
-box which covers the object in each frame of the move and writes the
-resulting cropped frames to separate PNG files.
+
+<a id="crop-animation-one-size-png"></a>
+Crop Animation (One Size PNG)
+-----------------------------
+
+Does the same as the [Crop Animation](#crop-animation) Folder Action,
+but always outputs a sequence of PNG images, where all frames of an
+animation are cropped to the same minimum size.
+
+
+<a id="crop-animation-same-box-png"></a>
+Crop Animation (Same Box PNG)
+-----------------------------
+
+Does the same as the [Crop Animation](#crop-animation) Folder Action,
+but always outputs a sequence of PNG images, where all frames of an
+animation are cropped using the bounding box which covers the object
+in all frames of the animation.
+
 
 
 

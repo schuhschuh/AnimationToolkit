@@ -61,7 +61,7 @@
 					<key>COMMAND_STRING</key>
 					<string>
 PATH=/opt/animationtoolkit/bin:/usr/bin:/bin:/usr/local/bin:/usr/X11/bin
-PREFIX="Cropped Animation Frames (Fixed Size)/"
+PREFIX="Cropped Animation (One Size PNG)/"
 LOG="$(dirname "$1")/$PREFIX/Workflow.log"
 EXT=.png
 
