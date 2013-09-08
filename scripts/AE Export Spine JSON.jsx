@@ -778,6 +778,7 @@ function main()
         json.writeln("\t\t\"bones\": {");
         for (l = 1; l <= comp.numLayers; l++) {
             layer = comp.layer(l);
+            if (layer.source.typeName == "Composition") continue;
             // setup pose of layer
             setupPosition = layer.position.valueAtTime(comp.workAreaStart, false);
             setupRotation = layer.rotation.valueAtTime(comp.workAreaStart, false);
@@ -880,6 +881,7 @@ function main()
         for (l = 1; l <= comp.numLayers; l++) {
             layer = comp.layer(l);
             slot  = slotName(layer);
+            if (layer.source.typeName == "Composition") continue;
             // color changes
             setupColor = opacityToColor(layer.opacity.valueAtTime(comp.workAreaStart, false));
             keyColor   = new Array();
