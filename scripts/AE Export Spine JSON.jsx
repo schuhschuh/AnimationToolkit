@@ -45,14 +45,17 @@ CAMERA_CENTER       = [50,50]; // define scene alignment relative to Spine's roo
 FORCE_CAMERA_CENTER = false;   // force camera center even when it is overridden in AE
 
 // animation export settings
-FPS_FORCED      = -1;   // force exported animation keyframe data to this frame rate
-                        //    -1: export keyframes only
-                        //     0: use composition settings
-                        // 1..99: use specified frame rate
-FPS_MULTIPLIER  = 1;    // multiplicative factor for frame rate, e.g., [0.5..3]
-FPS_COMPRESSION = true; // whether to remove redundant keyframes
-                        // false: write all sampled timeline keyframes
-                        // true:  write only required keyframes
+FPS_FORCED      = -1;    // force exported animation keyframe data to this frame rate
+                         //    -1: export keyframes only
+                         //     0: use composition settings
+                         // 1..99: use specified frame rate
+FPS_MULTIPLIER  = 1;     // multiplicative factor for frame rate, e.g., [0.5..3]
+FPS_COMPRESSION = true;  // whether to remove redundant keyframes
+                         // false: write all sampled timeline keyframes
+                         // true:  write only required keyframes
+PUPPET_EXTENSION = true; // how to export Puppet animations
+                         //   false: export as Spine slot animations
+                         //   true:  custom Spine JSON format extension
 
 // output settings
 FOLDER_SUFFIX = ' [Spine{fps}]';
@@ -97,6 +100,13 @@ function boneName(layer)
     if (layer.isNameSet) _name = layer.name;
     else                 _name = removeFileExt(layer.name)
     return _name.replace('_decomposed','');
+}
+
+// -----------------------------------------------------------------------------
+// get Spine puppet name of given AE layer
+function puppetName(layer)
+{
+    return boneName(layer);
 }
 
 // -----------------------------------------------------------------------------
@@ -632,8 +642,11 @@ function main()
             setupAttachment[slot] = 'null';
             keyAttachment  [slot] = new Array();
             // render effect distorted attachments if layer distortion effects
-            // such as Transformation, Wave Warp, or Puppet Tool are active
-            if (layer.property('Effects').numProperties > 0 && layer.effectsActive) {
+            // such as Transformation or Wave Warp are active; note that the Puppet
+            // effect is explicitly exported below; it can be recovered using the
+            // As Rigid As Possible algorithm used by the Puppet Tool effect
+            if (layer.property('Effects').numProperties > 0 && layer.effectsActive &&
+                    !layer.property('Effects').property('Puppet')) {
                 num = saveLayerAsPNGs(outputDir, layer, fps);
                 if (num == 0) {
                     alert('Failed to render distorted attachments for layer ' + layer.name);
@@ -694,6 +707,7 @@ function main()
         pw.update();
 
         json.writeln("{");
+        // bones
         json.writeln("\"bones\": [");
         json.writeln("\t{ \"name\": \"root\" },");
         depth    = new Array();
@@ -733,16 +747,18 @@ function main()
             }
         }
         json.writeln("],");
-        pb.value = 100;
-        pw.update();
         // attachment slots
         json.writeln("\"slots\": [");
         for (l = comp.numLayers; l >= 1; l--) {
             layer = comp.layer(l);
             if (layer.source.typeName == "Composition") continue;
             slot = slotName(layer);
+            if (setupAttachment[slot].indexOf('_decomposed') > -1) {
+                alert('Invalid attachment name for layer ' + layer.name + ': ' + setupAttachment[slot]);
+                return 1;
+            }
             line = "\t{ \"name\": \"" + slot            + "\""
-                   + ", \"bone\": \"" + boneName(layer) + "\"";
+                 + ", \"bone\": \""   + boneName(layer) + "\"";
             if (setupAttachment[slot] != 'null') line += ", \"attachment\": " + setupAttachment[slot];
             // Note: If you notice a problem with the setup opacity always being 100% after loading
             //       the exported JSON file into Spine or one of its runtimes, this might be related
@@ -752,8 +768,83 @@ function main()
             //       See https://github.com/EsotericSoftware/spine-runtimes/issues/59.
             value = opacityToColor(layer.opacity.valueAtTime(comp.workAreaStart, false));
             if (value != 'FFFFFFFF') line += ", \"color\": \"" + value + "\"";
-            line += " },";
-            json.writeln(line);
+            // puppet mesh
+            if (PUPPET_EXTENSION && layer.effectsActive && layer.property('Effects').property('Puppet')) {
+                mesh = layer.property('Effects').property('Puppet').arap.mesh(1);
+                if (!mesh) {
+                    alert('Missing mesh for Puppet effect of layer ' + layer.name + '!');
+                    return 1;
+                }
+                if (mesh    .property('Deform')   .numProperties > 0 ||
+                        mesh.property('Stiffness').numProperties > 0 ||
+                        mesh.property('Overlap')  .numProperties > 0) {
+                    json.writeln(line + ",");
+                    // deform pins
+                    if (mesh.property('Deform').numProperties > 0) {
+                        json.writeln("\t\t\"deform pins\": [");
+                        for (p = mesh.property('Deform').numProperties; p > 0; p--) {
+                            pin = mesh.property('Deform').property(p);
+
+                            setupPosition = pin.position.valueAtTime(comp.workAreaStart, false);
+
+                            line  = "\t\t\t{ \"name\": \"" + pin.name + "\"";
+                            line += ", \"x\": " + valueToString( setupPosition[0]);
+                            line += ", \"y\": " + valueToString(-setupPosition[1]);
+                            line += " },";
+
+                            json.writeln(line);
+                        }
+                        json.writeln("\t\t],");
+                    }
+                    // stiffness pins
+                    if (mesh.property('Stiffness').numProperties > 0) {
+                        json.writeln("\t\t\"starch pins\": [");
+                        for (p = mesh.property('Stiffness').numProperties; p > 0; p--) {
+                            pin = mesh.property('Stiffness').property(p);
+
+                            setupPosition  = pin.position.valueAtTime(comp.workAreaStart, false);
+                            setupStiffness = pin.amount  .valueAtTime(comp.workAreaStart, false);
+                            setupExtent    = pin.extent  .valueAtTime(comp.workAreaStart, false);
+
+                            line  = "\t\t\t{ \"name\": \"" + pin.name + "\"";
+                            line += ", \"x\": "         + valueToString( setupPosition[0]);
+                            line += ", \"y\": "         + valueToString(-setupPosition[1]);
+                            line += ", \"stiffness\": " + valueToString(setupStiffness / 100);
+                            line += ", \"extent\": "    + valueToString(setupExtent);
+                            line += " },";
+
+                            json.writeln(line);
+                        }
+                        json.writeln("\t\t],");
+                    }
+                    // overlap pins
+                    if (mesh.property('Overlap').numProperties > 0) {
+                        json.writeln("\t\t\"overlap pins\": [");
+                        for (p = mesh.property('Overlap').numProperties; p > 0; p--) {
+                            pin = mesh.property('Overlap').property(p);
+
+                            setupPosition = pin.position            .valueAtTime(comp.workAreaStart, false);
+                            setupInFront  = pin.property('In Front').valueAtTime(comp.workAreaStart, false);
+                            setupExtent   = pin.extent              .valueAtTime(comp.workAreaStart, false);
+
+                            line  = "\t\t\t{ \"name\": \"" + pin.name + "\"";
+                            line += ", \"x\": "       + valueToString( setupPosition[0]);
+                            line += ", \"y\": "       + valueToString(-setupPosition[1]);
+                            line += ", \"infront\": " + valueToString(setupInFront / 100);
+                            line += ", \"extent\": "  + valueToString(setupExtent);
+                            line += " },";
+
+                            json.writeln(line);
+                        }
+                        json.writeln("\t\t],");
+                    }
+                    json.writeln("\t},");
+                } else {
+                    json.writeln(line + " },");
+                }
+            } else {
+                json.writeln(line + " },");
+            }
         }
         json.writeln("],");
         // skins and anchor point of attachment
@@ -906,9 +997,200 @@ function main()
                 }
             }
             if (FPS_COMPRESSION) keyColor = sparsifyKeyFrames(comp, keyColor, setupColor);
+            // puppet effect - distorts slot attachment
+            keyDeformPin  = new Array();
+            keyStarchPin  = new Array();
+            keyOverlapPin = new Array();
+            if (PUPPET_EXTENSION && layer.effectsActive && layer.property('Effects').property('Puppet')) {
+                mesh = layer.property('Effects').property('Puppet').arap.mesh(1);
+                if (!mesh) {
+                    alert('Missing mesh for Puppet effect of layer ' + layer.name + '!');
+                    return 1;
+                }
+                // deform pins
+                if (mesh.property('Deform').numProperties > 0) {
+                    for (p = mesh.property('Deform').numProperties; p > 0; p--) {
+                        pin = mesh.property('Deform').property(p);
+                        // setup pose of pin
+                        setupPosition = pin.position.valueAtTime(comp.workAreaStart, false);
+                        // either sample pin positions at constant frame rate
+                        keyPosition = new Array();
+                        if (sampleKeyFrames) {
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.position.valueAtTime(t, false);
+                                keyPosition.push(key);
+                            }
+                        // or export AE keyframes
+                        } else {
+                            for (k = 1; k <= pin.position.numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.position.keyTime(k);
+                                key.value = pin.position.valueAtTime(key.time, false);
+                                keyPosition.push(key);
+                            }
+                        }
+                        // discard redundant keyframes
+                        if (FPS_COMPRESSION) {
+                            keyPosition = sparsifyKeyFrames(comp, keyPosition, setupPosition);
+                        }
+                        // store pin keyframes for later
+                        if (keyPosition.length > 0) {
+                            // TODO similar to other Spine animations, convert values to be relative to setup pose
+                            dpin             = {};
+                            dpin.name        = pin.name;
+                            dpin.keyPosition = keyPosition;
+                            keyDeformPin.push(dpin);
+                        }
+                    }
+                }
+                // stiffness pins
+                if (mesh.property('Stiffness').numProperties > 0) {
+                    for (p = mesh.property('Stiffness').numProperties; p > 0; p--) {
+                        pin = mesh.property('Stiffness').property(p);
+                        // setup pose of pin
+                        setupPosition  = pin.position.valueAtTime(comp.workAreaStart, false);
+                        setupStiffness = pin.amount  .valueAtTime(comp.workAreaStart, false);
+                        setupExtent    = pin.extent  .valueAtTime(comp.workAreaStart, false);
+                        // either sample pin properties at constant frame rate
+                        keyPosition  = new Array();
+                        keyStiffness = new Array();
+                        keyExtent    = new Array();
+                        if (sampleKeyFrames) {
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.position.valueAtTime(t, false);
+                                keyPosition.push(key);
+                            }
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.amount.valueAtTime(t, false);
+                                keyStiffness.push(key);
+                            }
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.extent.valueAtTime(t, false);
+                                keyExtent.push(key);
+                            }
+                        // or export AE keyframes
+                        } else {
+                            for (k = 1; k <= pin.position.numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.position.keyTime(k);
+                                key.value = pin.position.valueAtTime(key.time, false);
+                                keyPosition.push(key);
+                            }
+                            for (k = 1; k <= pin.amount.numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.amount.keyTime(k);
+                                key.value = pin.amount.valueAtTime(key.time, false);
+                                keyStiffness.push(key);
+                            }
+                            for (k = 1; k <= pin.extent.numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.extent.keyTime(k);
+                                key.value = pin.extent.valueAtTime(key.time, false);
+                                keyExtent.push(key);
+                            }
+                        }
+                        // discard redundant keyframes
+                        if (FPS_COMPRESSION) {
+                            keyPosition  = sparsifyKeyFrames(comp, keyPosition,  setupPosition);
+                            keyStiffness = sparsifyKeyFrames(comp, keyStiffness, setupStiffness);
+                            keyExtent    = sparsifyKeyFrames(comp, keyExtent,    setupExtent);
+                        }
+                        // store pin keyframes for later
+                        if (keyPosition.length > 0 || keyStiffness.length > 0 || keyExtent.length > 0) {
+                            // TODO similar to other Spine animations, convert values to be relative to setup pose
+                            spin              = {};
+                            spin.name         = pin.name;
+                            spin.keyPosition  = keyPosition;
+                            spin.keyStiffness = keyStiffness;
+                            spin.keyExtent    = keyExtent;
+                            keyStarchPin.push(spin);
+                        }
+                    }
+                }
+                // overlap pins
+                if (mesh.property('Overlap').numProperties > 0) {
+                    //json.writeln("\t\t\t\t\"overlap\": {");
+                    for (p = mesh.property('Overlap').numProperties; p > 0; p--) {
+                        pin = mesh.property('Overlap').property(p);
+                        // setup pose of pin
+                        setupPosition = pin.position            .valueAtTime(comp.workAreaStart, false);
+                        setupInFront  = pin.property('In Front').valueAtTime(comp.workAreaStart, false);
+                        setupExtent   = pin.extent              .valueAtTime(comp.workAreaStart, false);
+                        // either sample pin properties at constant frame rate
+                        keyPosition = new Array();
+                        keyInFront  = new Array();
+                        keyExtent   = new Array();
+                        if (sampleKeyFrames) {
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.position.valueAtTime(t, false);
+                                keyPosition.push(key);
+                            }
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.property('In Front').valueAtTime(t, false);
+                                keyInFront.push(key);
+                            }
+                            for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
+                                key       = {};
+                                key.time  = t;
+                                key.value = pin.extent.valueAtTime(t, false);
+                                keyExtent.push(key);
+                            }
+                        // or export AE keyframes
+                        } else {
+                            for (k = 1; k <= pin.position.numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.position.keyTime(k);
+                                key.value = pin.position.valueAtTime(key.time, false);
+                                keyPosition.push(key);
+                            }
+                            for (k = 1; k <= pin.property('In Front').numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.property('In Front').keyTime(k);
+                                key.value = pin.property('In Front').valueAtTime(key.time, false);
+                                keyInFront.push(key);
+                            }
+                            for (k = 1; k <= pin.extent.numKeys; k++) {
+                                key       = {};
+                                key.time  = pin.extent.keyTime(k);
+                                key.value = pin.extent.valueAtTime(key.time, false);
+                                keyExtent.push(key);
+                            }
+                        }
+                        // discard redundant keyframes
+                        if (FPS_COMPRESSION) {
+                            keyPosition = sparsifyKeyFrames(comp, keyPosition, setupPosition);
+                            keyInFront  = sparsifyKeyFrames(comp, keyInFront,  setupInFront);
+                            keyExtent   = sparsifyKeyFrames(comp, keyExtent,   setupExtent);
+                        }
+                        // store pin keyframes for later
+                        if (keyPosition.length > 0 || keyInFront.length > 0 || keyExtent.length > 0) {
+                            // TODO similar to other Spine animations, convert values to be relative to setup pose
+                            opin             = {};
+                            opin.name        = pin.name;
+                            opin.keyPosition = keyPosition;
+                            opin.keyInFront  = keyInFront;
+                            opin.keyExtent   = keyExtent;
+                            keyOverlapPin.push(opin);
+                        }
+                    }
+                }
+            }
             // write keyframes of slot animation
-            if (keyColor.length > 0 || keyAttachment[slot].length > 0) {
-                json.writeln("\t\t\t\"" + slotName(layer) + "\": {");
+            if (keyColor.length > 0 || keyAttachment[slot].length > 0
+                    || keyDeformPin.length > 0 || keyStarchPin.length > 0 || keyOverlapPin.length > 0) {
+                json.writeln("\t\t\t\"" + slot + "\": {");
                 if (keyColor.length > 0) {
                     json.writeln("\t\t\t\t\"color\": [");
                     for (i = 0; i < keyColor.length; i++) {
@@ -924,6 +1206,99 @@ function main()
                                 + ", \"name\": " + keyAttachment[slot][i].value + " },");
                     }
                     json.writeln("\t\t\t\t],");
+                }
+                if (keyDeformPin.length > 0) {
+                    json.writeln("\t\t\t\t\"shape\": {");
+                    json.writeln("\t\t\t\t\t\"deform\": {");
+                    for (p = 0; p < keyDeformPin.length; p++) {
+                        pin = keyDeformPin[p];
+                        json.writeln("\t\t\t\t\t\t\"" + pin.name + "\": {");
+                        json.writeln("\t\t\t\t\t\t\t\"translate\": [");
+                        for (i = 0; i < pin.keyPosition.length; i++) {
+                            json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyPosition[i].time)
+                                    + ", \"x\": " + valueToString(  pin.keyPosition[i].value[0] )
+                                    + ", \"y\": " + valueToString(-(pin.keyPosition[i].value[1]))
+                                    + " },");
+                        }
+                        json.writeln("\t\t\t\t\t\t\t],");
+                        json.writeln("\t\t\t\t\t\t},");
+                    }
+                    json.writeln("\t\t\t\t\t},");
+                    if (keyStarchPin.length > 0) {
+                        json.writeln("\t\t\t\t\t\"starch\": {");
+                        for (p = 0; p < keyStarchPin.length; p++) {
+                            pin = keyStarchPin[p];
+                            json.writeln("\t\t\t\t\t\t\"" + pin.name + "\": {");
+                            if (pin.keyPosition.length > 0) {
+                                json.writeln("\t\t\t\t\t\t\t\"translate\": [");
+                                for (i = 0; i < pin.keyPosition.length; i++) {
+                                    json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyPosition[i].time)
+                                            + ", \"x\": " + valueToString(  pin.keyPosition[i].value[0] )
+                                            + ", \"y\": " + valueToString(-(pin.keyPosition[i].value[1]))
+                                            + " },");
+                                }
+                                json.writeln("\t\t\t\t\t\t\t],");
+                            }
+                            if (pin.keyStiffness.length > 0) {
+                                json.writeln("\t\t\t\t\t\t\t\"stiffness\": [");
+                                for (i = 0; i < pin.keyStiffness.length; i++) {
+                                    json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyStiffness[i].time)
+                                            + ", \"stiffness\": " + valueToString(pin.keyStiffness[i].value / 100)
+                                            + " },");
+                                }
+                                json.writeln("\t\t\t\t\t\t\t],");
+                            }
+                            if (pin.keyExtent.length > 0) {
+                                json.writeln("\t\t\t\t\t\t\t\"extent\": [");
+                                for (i = 0; i < keyExtent.length; i++) {
+                                    json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyExtent[i].time)
+                                            + ", \"extent\": " + valueToString(pin.keyExtent[i].value)
+                                            + " },");
+                                }
+                                json.writeln("\t\t\t\t\t\t\t],");
+                            }
+                            json.writeln("\t\t\t\t\t\t},");
+                        }
+                        json.writeln("\t\t\t\t\t},");
+                    }
+                    if (keyOverlapPin.length > 0) {
+                        json.writeln("\t\t\t\t\t\"overlap\": {");
+                        for (p = 0; p < keyOverlapPin.length; p++) {
+                            pin = keyOverlapPin[p];
+                            json.writeln("\t\t\t\t\t\t\"" + pin.name + "\": {");
+                            if (pin.keyPosition.length > 0) {
+                                json.writeln("\t\t\t\t\t\t\t\"translate\": [");
+                                for (i = 0; i < pin.keyPosition.length; i++) {
+                                    json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyPosition[i].time)
+                                            + ", \"x\": " + valueToString(  pin.keyPosition[i].value[0] )
+                                            + ", \"y\": " + valueToString(-(pin.keyPosition[i].value[1]))
+                                            + " },");
+                                }
+                                json.writeln("\t\t\t\t\t\t\t],");
+                            }
+                            if (pin.keyInFront.length > 0) {
+                                json.writeln("\t\t\t\t\t\t\t\"infront\": [");
+                                for (i = 0; i < pin.keyInFront.length; i++) {
+                                    json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyInFront[i].time)
+                                            + ", \"infront\": " + valueToString(pin.keyInFront[i].value / 100)
+                                            + " },");
+                                }
+                                json.writeln("\t\t\t\t\t\t\t],");
+                            }
+                            if (pin.keyExtent.length > 0) {
+                                json.writeln("\t\t\t\t\t\t\t\"extent\": [");
+                                for (i = 0; i < pin.keyExtent.length; i++) {
+                                    json.writeln("\t\t\t\t\t\t\t\t{ \"time\": " + valueToString(pin.keyExtent[i].time)
+                                            + ", \"extent\": " + valueToString(pin.keyExtent[i].value)
+                                            + " },");
+                                }
+                                json.writeln("\t\t\t\t\t\t\t],");
+                            }
+                            json.writeln("\t\t\t\t\t\t},");
+                        }
+                        json.writeln("\t\t\t\t\t},");
+                    }
+                    json.writeln("\t\t\t\t},");
                 }
                 json.writeln("\t\t\t},");
             }
@@ -1004,12 +1379,14 @@ for (i = 1; i <= app.project.renderQueue.numItems; i++) {
 if (go) {
     app.project.saveWithDialog();
     rc = main();
-    if (rc == 0) msg = 'Success';
-    else         msg = 'Failed';
-    if (confirm(msg + '!\nYou hopefully saved your project before the export.'
-              + '\nDo you want to revert to the last saved state now?')) {
-        f = app.project.file;
-        app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
-        app.open(f);
+    if (app.project.file) {
+        if (rc == 0) msg = 'Success';
+        else         msg = 'Failed';
+        if (confirm(msg + '!\nYou hopefully saved your project before the export.'
+                  + '\nDo you want to revert to the last saved state now?')) {
+            f = app.project.file;
+            app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
+            app.open(f);
+        }
     }
 }
