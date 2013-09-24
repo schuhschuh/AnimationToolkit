@@ -395,6 +395,11 @@ function saveLayerAsPNGs(dir, layer, fps)
 // wrap all code in function to enable use of return statement
 function main()
 {
+    if (!app.project.file) {
+        alert('Project unsaved! Please save the project first before you continue.');
+        return 1;
+    }
+
     projectName = removeFileExt(restoreFilePath(app.project.file.name));
     outputDir   = restoreFilePath(app.project.file.path) + '/' + projectName;
     jsonName    = projectName;
