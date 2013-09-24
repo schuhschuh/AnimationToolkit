@@ -112,7 +112,8 @@ function slotName(layer)
 // get Spine attachment name of given AE layer
 function attachmentName(layer)
 {
-    return removeFileExt(layer.source.name.split('/')[0]); // e.g., "<layer>/<PSD name>"
+    _name = removeFileExt(layer.source.name.split('/')[0]); // e.g., "<layer>/<PSD name>"
+    return _name.replace('_decomposed','');
 }
 
 // -----------------------------------------------------------------------------
