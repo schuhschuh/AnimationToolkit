@@ -68,24 +68,24 @@ SHOW_FPS_DIALOG = true; // prompt user to enter desired frame rate
 // file path related functions
 function getFileExt(path)
 {
-    idx = path.lastIndexOf('.');
-    if (idx > 0) return path.substr(idx);
+    _idx = path.lastIndexOf('.');
+    if (_idx > 0) return path.substr(_idx);
     // leading dot has different meaning on Unix (hidden file)
     return '';
 }
 
 function removeFileExt(path)
 {
-    ext = getFileExt(path);
-    return path.substr(0, path.length - ext.length);
+    _ext = getFileExt(path);
+    return path.substr(0, path.length - _ext.length);
 }
 
 function basename(path)
 {
-    idx = path.lastIndexOf('/');
-    if (idx > 0) path = path.substr(idx + 1, path.length - idx - 1);
-    idx = path.lastIndexOf('\\');
-    if (idx > 0) path = path.substr(idx + 1, path.length - idx - 1);
+    _idx = path.lastIndexOf('/');
+    if (_idx > 0) path = path.substr(_idx + 1, path.length - _idx - 1);
+    _idx = path.lastIndexOf('\\');
+    if (_idx > 0) path = path.substr(_idx + 1, path.length - _idx - 1);
     return path;
 }
 
@@ -94,18 +94,18 @@ function basename(path)
 function boneName(layer)
 {
     if (layer == null) return 'root';
-    if (layer.isNameSet) name = layer.name;
-    else                 name = removeFileExt(layer.name)
-    return name.replace('_decomposed','');
+    if (layer.isNameSet) _name = layer.name;
+    else                 _name = removeFileExt(layer.name)
+    return _name.replace('_decomposed','');
 }
 
 // -----------------------------------------------------------------------------
 // get Spine slot name of given AE layer
 function slotName(layer)
 {
-    if (layer.isNameSet) name = layer.name;
-    else                 name = removeFileExt(layer.name)
-    return name.replace('_decomposed','');
+    if (layer.isNameSet) _name = layer.name;
+    else                 _name = removeFileExt(layer.name)
+    return _name.replace('_decomposed','');
 }
 
 // -----------------------------------------------------------------------------
@@ -120,14 +120,14 @@ function attachmentName(layer)
 // get layer attributes as Spine slot attachment properties string
 function attachmentProps(layer)
 {
-    anchorPoint = layer.anchorPoint.valueAtTime(comp.workAreaStart, false);
-    props =     "\"width\": "  + layer.width
-            + ", \"height\": " + layer.height;
-    value = valueToString(layer.width/2 - anchorPoint[0]);
-    if (value != '0') props += ", \"x\": " + value;
-    value = valueToString(-(layer.height/2 - anchorPoint[1]));
-    if (value != '0') props += ", \"y\": " + value;
-    return props;
+    _anchorPoint = layer.anchorPoint.valueAtTime(comp.workAreaStart, false);
+    _props =   "\"width\": "  + layer.width
+           + ", \"height\": " + layer.height;
+    _value = valueToString(layer.width/2 - _anchorPoint[0]);
+    if (_value != '0') _props += ", \"x\": " + _value;
+    _value = valueToString(-(layer.height/2 - _anchorPoint[1]));
+    if (_value != '0') _props += ", \"y\": " + _value;
+    return _props;
 }
 
 // -----------------------------------------------------------------------------
@@ -181,36 +181,36 @@ function notEqual(a, b)
 // discard all keyframes which are redundant and those do not need to be exported
 function sparsifyKeyFrames(comp, key, setup)
 {
-    out = new Array();
-    if (key.length == 0) return out;
+    _out = new Array();
+    if (key.length == 0) return _out;
     // first keyframe required if either of the following is true (in this order)
     // - keyframe value different from setup pose
     // - keyframe occuring at later time and it is not the only keyframe
     // - keyframe followed by one which has a different value
     if (setup == null || notEqual(key[0].value, setup) ||
             (key.length > 1 && (key[0].time > comp.workAreaStart || notEqual(key[0].value, key[1].value)))) {
-        out.push(key[0]);
+        _out.push(key[0]);
     }
     // intermediate keyframes only required if not identical to both previous and next keyframes
     for (k = 1; k < key.length - 1; k++) {
         if (notEqual(key[k-1].value, key[k].value) || notEqual(key[k].value, key[k+1].value)) {
-            out.push(key[k]);
+            _out.push(key[k]);
         }
     }
     // last keyframe only required if different from second to last keyframe
     if (key.length > 1 && notEqual(key[key.length-2].value, key[key.length-1].value)) {
-        out.push(key[key.length-1]);
+        _out.push(key[key.length-1]);
     }
-    return out;
+    return _out;
 }
 
 // -----------------------------------------------------------------------------
 // convert AE opacity value to Spine slot RGBA color string
 function opacityToColor(opacity)
 {
-    A = (255 * opacity/100).toString(16).toUpperCase();
-    if (A.length == 1) A = '0' + A;
-    return 'FFFFFF' + A;
+    _A = (255 * opacity/100).toString(16).toUpperCase();
+    if (_A.length == 1) _A = '0' + _A;
+    return 'FFFFFF' + _A;
 }
 
 // -----------------------------------------------------------------------------
@@ -233,47 +233,46 @@ function replaceAll(str, substr, insstr)
 // restore File path and name
 function restoreFilePath(path)
 {
-    path = replaceAll(path, '%20', ' ');
-    return path;
+    return replaceAll(path, '%20', ' ');
 }
 
 // -----------------------------------------------------------------------------
 // image sequence footage related functions
 function getSequencePrefix(item)
 {
-    pos = item.name.indexOf('[');
-    if (pos == -1) return item.name;
-    return item.name.substr(0, );
+    _pos = item.name.indexOf('[');
+    if (_pos == -1) return item.name;
+    return item.name.substr(0, _pos);
 }
 
 function getSequenceSuffix(item)
 {
-    pos = item.name.indexOf(']');
-    if (pos == -1) return '';
-    return item.name.substr(pos, item.name.length - pos);
+    _pos = item.name.indexOf(']');
+    if (_pos == -1) return '';
+    return item.name.substr(_pos, item.name.length - _pos);
 }
 
 function getSequenceRange(item)
 {
-    prefix = getSequencePrefix(item);
-    suffix = getSequenceSuffix(item);
-    range  = item.name.substr(prefix.length, item.name.length - prefix.length - suffix.length);
-    pos    = range.indexOf('-');
-    if (pos <= 1 || pos >= range.length-2) return [-1, -1, -1];
-    start  = range.substr(1, pos);
-    end    = range.substr(pos + 1, range.length);
-    if (start.length == end.length) width = start.length;
-    else                            width = 0;
-    return [parseInt(start, 10), parseInt(end, 10), width];
+    _prefix = getSequencePrefix(item);
+    _suffix = getSequenceSuffix(item);
+    _range  = item.name.substr(_prefix.length, item.name.length - _prefix.length - _suffix.length);
+    _pos    = _range.indexOf('-');
+    if (_pos <= 1 || _pos >= _range.length-2) return [-1, -1, -1];
+    _start  = _range.substr(1, _pos);
+    _end    = _range.substr(_pos + 1, _range.length);
+    if (_start.length == _end.length) _width = _start.length;
+    else                              _width = 0;
+    return [parseInt(_start, 10), parseInt(_end, 10), _width];
 }
 
 function getSequenceFile(prefix, suffix, n)
 {
-    for (w = 0; w < 8; w++) {
-        idx = n.toString();
-        while (idx.length < w) idx = '0' + idx;
-        f = new File(prefix + idx + suffix);
-        if (f.exists()) return f;
+    for (_w = 0; _w < 8; _w++) {
+        _idx = n.toString();
+        while (_idx.length < _w) _idx = '0' + _idx;
+        _f = new File(prefix + _idx + suffix);
+        if (_f.exists()) return _f;
     }
     return null;
 }
@@ -289,21 +288,21 @@ function saveFootageAsPNG(dir, footage)
 {
     if (footage == null) return false;
     // import single sequence image as new footage
-    tempFootage = false;
+    _tempFootage = false;
     if (footage instanceof File) {
         if (getFileExt(footage.name).toLowerCase() == '.png') {
             footage.file.copy(dir + '/' + removeFileExt(restoreFilePath(footage.name)) + '.png');
             return true;
         }
-        io = new ImportOptions(footage);
-        io.importAs = ImportAsType.FOOTAGE;
-        io.sequence = false;
-        footage = app.project.importFile(io);
+        _io = new ImportOptions(footage);
+        _io.importAs = ImportAsType.FOOTAGE;
+        _io.sequence = false;
+        footage = app.project.importFile(_io);
         if (footage == null) {
-            alert('Failed to import sequence file "' + io.file + '" as single footage!');
+            alert('Failed to import sequence file "' + _io.file + '" as single footage!');
             return false;
         }
-        tempFootage = true;
+        _tempFootage = true;
     // if footage source is a file, check that it exists
     } else if (footage.file != null) {
         if (!footage.file.exists) {
@@ -317,27 +316,27 @@ function saveFootageAsPNG(dir, footage)
     }
     // else solid, text, ...
     // create temporary composition
-    comp  = app.project.items.addComp('Export Spine Footage', footage.width, footage.height, 1, 1, 1);
-    layer = comp.layers.add(footage);
+    _comp  = app.project.items.addComp('Export Spine Footage', footage.width, footage.height, 1, 1, 1);
+    _layer = _comp.layers.add(footage);
     if (layer == null) {
         alert('Failed to add footage ' + footage.name + ' as layer of temporary export composition!');
-        comp.remove();
+        _comp.remove();
         return false;
     }
     // render footage using PNG output template
-    name = removeFileExt(footage.name).split('/', 1)[0]; // e.g., "<layer>/<PSD name>"
-    item = app.project.renderQueue.items.add(comp);
-    item.outputModules[1].applyTemplate('PNG');
-    item.outputModules[1].file = new File(dir + '/' + name + '_[#].png');
-    if (item.outputModules[1].file.exists) item.outputModules[1].file.remove();
+    _name = removeFileExt(footage.name).split('/', 1)[0]; // e.g., "<layer>/<PSD name>"
+    _item = app.project.renderQueue.items.add(_comp);
+    _item.outputModules[1].applyTemplate('PNG');
+    _item.outputModules[1].file = new File(dir + '/' + _name + '_[#].png');
+    if (_item.outputModules[1].file.exists) _item.outputModules[1].file.remove();
     app.project.renderQueue.render();
     // remove suffix _0 from rendered file
-    f = new File(dir + '/' + name + '_0.png');
-    f.copy(dir + '/' + name + '.png');
-    f.remove();
+    _f = new File(dir + '/' + _name + '_0.png');
+    _f.copy(dir + '/' + _name + '.png');
+    _f.remove();
     // clean up
-    comp.remove();
-    if (tempFootage) footage.remove();
+    _comp.remove();
+    if (_tempFootage) footage.remove();
     app.project.renderQueue.showWindow(false);
     return true;
 }
@@ -346,7 +345,7 @@ function saveFootageAsPNG(dir, footage)
 // remove all keyframes of a property
 function resetProperty(prop)
 {
-  for (i = prop.numKeys; i > 0; i--) prop.removeKey(i);
+  for (_i = prop.numKeys; _i > 0; _i--) prop.removeKey(_i);
 }
 
 // -----------------------------------------------------------------------------
@@ -365,25 +364,25 @@ function saveLayerAsPNGs(dir, layer, fps)
 {
     if (layer == null) return 0;
     // create temporary composition
-    tmpcomp = app.project.items.addComp('Render Spine Attachments', layer.width, layer.height, 1, layer.outPoint - layer.inPoint, fps);
-    tmpcomp.workAreaStart = layer.inPoint;
-    layer.copyToComp(tmpcomp);
-    if (tmpcomp.numLayers == 0) {
+    _comp = app.project.items.addComp('Render Spine Attachments', layer.width, layer.height, 1, layer.outPoint - layer.inPoint, fps);
+    _comp.workAreaStart = layer.inPoint;
+    layer.copyToComp(_comp);
+    if (_comp.numLayers == 0) {
         alert('Failed to copy layer ' + layer.name + ' to temporary export composition!');
-        comp.remove();
+        _comp.remove();
         return 0;
     }
     // reset general layer transformation as it is reflected by the bone animation
-    tmplayer = tmpcomp.layer(1);
-    resetTransform(tmplayer);
-    tmplayer.position.setValue(tmplayer.anchorPoint.value);
+    _layer = _comp.layer(1);
+    resetTransform(_layer);
+    _layer.position.setValue(_layer.anchorPoint.value);
     // render layer using PNG output template
-    item = app.project.renderQueue.items.add(tmpcomp);
-    item.outputModules[1].applyTemplate('PNG');
-    item.outputModules[1].file = new File(dir + '/' + attachmentName(layer) + '_[#####].png');
+    _item = app.project.renderQueue.items.add(_comp);
+    _item.outputModules[1].applyTemplate('PNG');
+    _item.outputModules[1].file = new File(dir + '/' + attachmentName(layer) + '_[#####].png');
     app.project.renderQueue.render();
     // clean up
-    tmpcomp.remove();
+    _comp.remove();
     app.project.renderQueue.showWindow(false);
     return Math.ceil((layer.outPoint - layer.inPoint) * fps);
 }
