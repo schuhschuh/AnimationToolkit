@@ -93,6 +93,16 @@ function basename(path)
 }
 
 // -----------------------------------------------------------------------------
+// convert string to safe identifier name that should not cause any encoding issues
+// such as we had with a layer named "eye + sport + beak" where the whitespaces
+// before and after the + had different hex code in the text file and in the
+// exported footage file name
+function safeName(str)
+{
+  return str.replace(/\s/g, '_');
+}
+
+// -----------------------------------------------------------------------------
 // get Spine bone name of given AE layer
 function boneName(layer)
 {
@@ -123,7 +133,16 @@ function slotName(layer)
 function attachmentName(layer)
 {
     _name = removeFileExt(layer.source.name.split('/')[0]); // e.g., "<layer>/<PSD name>"
-    return _name.replace('_decomposed','');
+    return safeName(_name.replace('_decomposed',''));
+}
+
+// -----------------------------------------------------------------------------
+// get Spine attachment name of given AE layer
+function footageName(item)
+{
+    if (item.typeName != "Footage" && item.source) item = item.source;
+    _name = removeFileExt(item.name.split('/')[0]); // e.g., "<layer>/<PSD name>"
+    return safeName(_name.replace('_decomposed',''));
 }
 
 // -----------------------------------------------------------------------------
@@ -131,12 +150,14 @@ function attachmentName(layer)
 function attachmentProps(layer)
 {
     _anchorPoint = layer.anchorPoint.valueAtTime(comp.workAreaStart, false);
-    _props =   "\"width\": "  + layer.width
+    _props = "\"width\": "  + layer.width
            + ", \"height\": " + layer.height;
     _value = valueToString(layer.width/2 - _anchorPoint[0]);
     if (_value != '0') _props += ", \"x\": " + _value;
     _value = valueToString(-(layer.height/2 - _anchorPoint[1]));
     if (_value != '0') _props += ", \"y\": " + _value;
+    _value = footageName(layer);
+    if (_value != attachmentName(layer)) _props += ", \"name\": \"" + _value + "\"";
     return _props;
 }
 
@@ -334,7 +355,7 @@ function saveFootageAsPNG(dir, footage)
         return false;
     }
     // render footage using PNG output template
-    _name = removeFileExt(footage.name).split('/', 1)[0]; // e.g., "<layer>/<PSD name>"
+    _name = footageName(footage);
     _item = app.project.renderQueue.items.add(_comp);
     _item.outputModules[1].applyTemplate('PNG');
     _item.outputModules[1].file = new File(dir + '/' + _name + '_[#].png');
@@ -389,7 +410,7 @@ function saveLayerAsPNGs(dir, layer, fps)
     // render layer using PNG output template
     _item = app.project.renderQueue.items.add(_comp);
     _item.outputModules[1].applyTemplate('PNG');
-    _item.outputModules[1].file = new File(dir + '/' + attachmentName(layer) + '_[#####].png');
+    _item.outputModules[1].file = new File(dir + '/' + footageName(layer) + '_[#####].png');
     app.project.renderQueue.render();
     // clean up
     _comp.remove();
@@ -483,7 +504,22 @@ function main()
     }
 
     // -------------------------------------------------------------------------
-    // export top-level compositions
+    // deselect empty compositions and check if any composition is selected
+    autoSelect = true;
+    for (i = 1; i <= app.project.items.length; i++) {
+        item = app.project.item(i);
+        if (item.typeName == 'Composition' && item.selected) {
+            if (item.numLayers == 0) item.selected = false;
+            else                     autoSelect = false;
+        }
+    }
+    if (autoSelect) {
+        alert("No or empty composition selected for export!");
+        return 1;
+    }
+
+    // -------------------------------------------------------------------------
+    // export selected compositions
     compIdx = new Array();
     for (i = 1; i <= app.project.items.length; i++) {
         item = app.project.item(i);
@@ -561,8 +597,8 @@ function main()
 
                             layer.source.layer(i).copyToComp(comp);
 
-                            deCompLayer       = comp.layer(1);
-                            deCompLayer.name += "_decomposed";
+                            deCompLayer = comp.layer(1);
+                            //deCompLayer.name += "_decomposed";
 
                             deCompLayer.locked = false;
                             if (!layer.collapseTransformation) deCompLayer.blendingMode = layer.blendingMode;
@@ -614,6 +650,41 @@ function main()
         }
 
         // ---------------------------------------------------------------------
+        // make all layer and corresponding footage names unique
+        for (l = 1; l <= comp.numLayers; l++) {
+            // rename any other layers with same name
+            n = 1;
+            layer = comp.layer(l);
+            for (i = l + 1; i <= comp.numLayers; i++) {
+                if (comp.layer(i).name == layer.name) {
+                    comp.layer(i).name += "_" + (++n);
+                }
+            }
+            if (n > 1) layer.name += "_1";
+            // rename any other footages
+            if (layer.source && layer.source.typeName == "Footage") {
+                n            = 1;
+                footage      = layer.source;
+                footage.name = footageName(footage);
+                for (i = 1; i <= app.project.items.length; i++) {
+                    item = app.project.item(i);
+                    if (item.typeName == "Footage" && item != footage) {
+                        item.name = footageName(item);
+                        if (item.name == footage.name) {
+                            ++n;
+                            alert("Rename footage item from " + item.name + " -> " + item.name + "_" + n);
+                            item.name += "_" + n;
+                        }
+                    }
+                }
+                if (n > 1) {
+                    alert("Rename footage item itself from " + footage.name + " -> " + footage.name + "_1");
+                    footage.name += "_1";
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------
         // slot attachments - note that attachment names incl. double quotes already!
         st.text = comp.name + ': Preparing attachments...';
         pb.value = 0;
@@ -622,7 +693,7 @@ function main()
         numLayersWithEffect = 0;
         for (l = 1; l <= comp.numLayers; l++) {
             layer = comp.layer(l);
-            if (layer.source.typeName == "Composition") continue;
+            if (layer.source.typeName == "Composition" || layer.nullLayer) continue;
             if (layer.property('Effects').numProperties > 0 && layer.effectsActive) {
                 numLayersWithEffect++;
             }
@@ -636,7 +707,7 @@ function main()
         keyAttachment   = {};
         for (l = 1; l <= comp.numLayers; l++) {
             layer = comp.layer(l);
-            if (layer.source.typeName == "Composition") continue;
+            if (layer.source.typeName == "Composition" || layer.nullLayer) continue;
             name = attachmentName(layer);
             slot = slotName(layer);
             setupAttachment[slot] = 'null';
@@ -707,7 +778,7 @@ function main()
         pw.update();
 
         json.writeln("{");
-        // bones
+        // bones (incl. null objects)
         json.writeln("\"bones\": [");
         json.writeln("\t{ \"name\": \"root\" },");
         depth    = new Array();
@@ -751,7 +822,7 @@ function main()
         json.writeln("\"slots\": [");
         for (l = comp.numLayers; l >= 1; l--) {
             layer = comp.layer(l);
-            if (layer.source.typeName == "Composition") continue;
+            if (layer.source.typeName == "Composition" || layer.nullLayer) continue;
             slot = slotName(layer);
             if (setupAttachment[slot].indexOf('_decomposed') > -1) {
                 alert('Invalid attachment name for layer ' + layer.name + ': ' + setupAttachment[slot]);
@@ -852,7 +923,7 @@ function main()
         json.writeln("\t\"default\": {");
         for (l = 1; l <= comp.numLayers; l++) {
             layer = comp.layer(l);
-            if (layer.source.typeName == "Composition") continue;
+            if (layer.source.typeName == "Composition" || layer.nullLayer) continue;
             slot  = slotName(layer);
             props = attachmentProps(layer);
             json.writeln("\t\t\"" + slot + "\": {");
@@ -977,7 +1048,7 @@ function main()
         for (l = 1; l <= comp.numLayers; l++) {
             layer = comp.layer(l);
             slot  = slotName(layer);
-            if (layer.source.typeName == "Composition") continue;
+            if (layer.source.typeName == "Composition" || layer.nullLayer) continue;
             // color changes
             setupColor = opacityToColor(layer.opacity.valueAtTime(comp.workAreaStart, false));
             keyColor   = new Array();
@@ -1317,6 +1388,7 @@ function main()
 
     // -------------------------------------------------------------------------
     // remove unused footage
+    /*
     st.text = 'Exporting footage...';
     pb.value = 0;
     pw.update();
@@ -1327,6 +1399,7 @@ function main()
         pb.value = 100;
         pw.update();
     }
+    */
 
     // -------------------------------------------------------------------------
     // export layer footage - AFTER compositions as it changes item selections!
@@ -1335,11 +1408,29 @@ function main()
     pw.update();
 
     footageIdx = new Array();
-    footageOk  = true;
     for (i = 1; i <= app.project.items.length; i++) {
         item = app.project.item(i);
-        if (item.typeName == "Footage") footageIdx.push(i);
+        if (item.typeName == "Footage") {
+            footage   = item;
+            footageOk = false;
+            for (j = 1; j <= app.project.items.length; j++) {
+                otherItem = app.project.item(j);
+                if (otherItem.typeName == "Composition" && otherItem.selected) {
+                    comp = otherItem;
+                    for (l = 1; l <= comp.numLayers; l++) {
+                        layer = comp.layer(l);
+                        if (!layer.nullLayer && layer.source == footage) {
+                            footageOk = true;
+                            break;
+                        }
+                    }
+                    if (footageOk) break;
+                }
+            }
+            if (footageOk) footageIdx.push(i);
+        }
     }
+    footageOk = true;
     for (i = 0; i < footageIdx.length; i++) {
         footage = app.project.item(footageIdx[i]);
         range   = getSequenceRange(footage);
