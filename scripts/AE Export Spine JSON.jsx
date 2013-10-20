@@ -677,7 +677,6 @@ function main()
                     }
                 }
                 if (n > 1) {
-                    alert("Rename footage item itself from " + footage.name + " -> " + footage.name + "_1");
                     footage.name += "_1";
                 }
             }
