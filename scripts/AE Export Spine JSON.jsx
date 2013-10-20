@@ -245,6 +245,19 @@ function opacityToColor(opacity)
 }
 
 // -----------------------------------------------------------------------------
+// convert AE interpolation type to Spine interpolation "curve" value
+function interpolationToCurve(type)
+{
+    if (type == KeyframeInterpolationType.LINEAR) {
+        return ""; //", \"curve\": \"linear\"";
+    } else if (type == KeyframeInterpolationType.HOLD) {
+        return ", \"curve\": \"stepped\"";
+    } else {
+        alert("Unsupported keyframe interpolation type used (" + type + "). Only linear and hold keys are supported!");
+    }
+}
+
+// -----------------------------------------------------------------------------
 // convert value to rounded string
 function valueToString(value)
 {
@@ -341,7 +354,7 @@ function saveFootageAsPNG(dir, footage)
             return false;
         }
         if (getFileExt(footage.file.name).toLowerCase() == '.png') {
-            footage.file.copy(dir + '/' + removeFileExt(restoreFilePath(footage.file.name)) + '.png');
+            footage.file.copy(dir + '/' + footageName(footage) + '.png');
             return true;
         }
     }
@@ -958,16 +971,19 @@ function main()
                     key       = {};
                     key.time  = t;
                     key.value = layer.position.valueAtTime(t, false);
+                    key.out   = KeyframeInterpolationType.LINEAR;
                     keyPosition.push(key);
                     // rotation samples
                     key       = {};
                     key.time  = t;
                     key.value = layer.rotation.valueAtTime(t, false);
+                    key.out   = KeyframeInterpolationType.LINEAR;
                     keyRotation.push(key);
                     // scale samples
                     key       = {};
                     key.time  = t;
                     key.value = layer.scale.valueAtTime(t, false);
+                    key.out   = KeyframeInterpolationType.LINEAR;
                     keyScale.push(key);
                 }
             // or export AE keyframes
@@ -977,6 +993,7 @@ function main()
                     key       = {};
                     key.time  = layer.position.keyTime(k);
                     key.value = layer.position.valueAtTime(key.time, false);
+                    key.out   = layer.position.keyOutInterpolationType(k);
                     keyPosition.push(key);
                 }
                 // rotation keys
@@ -984,6 +1001,7 @@ function main()
                     key       = {};
                     key.time  = layer.rotation.keyTime(k);
                     key.value = layer.rotation.valueAtTime(key.time, false);
+                    key.out   = layer.rotation.keyOutInterpolationType(k);
                     keyRotation.push(key);
                 }
                 // scale keys
@@ -991,6 +1009,7 @@ function main()
                     key       = {};
                     key.time  = layer.scale.keyTime(k);
                     key.value = layer.scale.valueAtTime(key.time, false);
+                    key.out   = layer.scale.keyOutInterpolationType(k);
                     keyScale.push(key);
                 }
             }
@@ -1007,10 +1026,13 @@ function main()
                 if (keyPosition.length > 0) {
                     json.writeln("\t\t\t\t\"translate\": [");
                     for (i = 0; i < keyPosition.length; i++) {
-                        json.writeln("\t\t\t\t\t{ \"time\": " + valueToString(keyPosition[i].time)
-                                + ", \"x\": " + valueToString(  keyPosition[i].value[0] - setupPosition[0] )
-                                + ", \"y\": " + valueToString(-(keyPosition[i].value[1] - setupPosition[1]))
-                                + " },");
+                        line = "\t\t\t\t\t{ \"time\": " + valueToString(keyPosition[i].time);
+                        if (i < keyPosition.length-1) line += interpolationToCurve(keyPosition[i].out);
+                        line += ", \"x\": " + valueToString(  keyPosition[i].value[0] - setupPosition[0] );
+                        line += ", \"y\": " + valueToString(-(keyPosition[i].value[1] - setupPosition[1]));
+                        line += " }";
+                        if (i < keyPosition.length-1) line += ",";
+                        json.writeln(line);
                     }
                     json.writeln("\t\t\t\t],");
                 }
@@ -1018,9 +1040,12 @@ function main()
                 if (keyRotation.length > 0) {
                     json.writeln("\t\t\t\t\"rotate\": [");
                     for (i = 0; i < keyRotation.length; i++) {
-                        json.writeln("\t\t\t\t\t{ \"time\": " + valueToString(keyRotation[i].time)
-                                + ", \"angle\": " + valueToString(-(keyRotation[i].value - setupRotation))
-                                + " },");
+                        line = "\t\t\t\t\t{ \"time\": " + valueToString(keyRotation[i].time);
+                        if (i < keyRotation.length-1) line += interpolationToCurve(keyRotation[i].out);
+                        line += ", \"angle\": " + valueToString(-(keyRotation[i].value - setupRotation));
+                        line += " }";
+                        if (i < keyRotation.length-1) line += ",";
+                        json.writeln(line);
                     }
                     json.writeln("\t\t\t\t],");
                 }
@@ -1028,10 +1053,13 @@ function main()
                 if (keyScale.length > 0) {
                     json.writeln("\t\t\t\t\"scale\": [");
                     for (i = 0; i < keyScale.length; i++) {
-                        json.writeln("\t\t\t\t\t{ \"time\": " + valueToString(keyScale[i].time)
-                                + ", \"x\": " + valueToString(1 + (keyScale[i].value[0] - setupScale[0]) / 100)
-                                + ", \"y\": " + valueToString(1 + (keyScale[i].value[1] - setupScale[1]) / 100)
-                                + " },");
+                        line = "\t\t\t\t\t{ \"time\": " + valueToString(keyScale[i].time);
+                        if (i < keyScale.length-1) line += interpolationToCurve(keyScale[i].out);
+                        line += ", \"x\": " + valueToString(1 + (keyScale[i].value[0] - setupScale[0]) / 100);
+                        line += ", \"y\": " + valueToString(1 + (keyScale[i].value[1] - setupScale[1]) / 100);
+                        line += " }";
+                        if (i < keyScale.length-1) line += ",";
+                        json.writeln(line);
                     }
                     json.writeln("\t\t\t\t],");
                 }
@@ -1055,6 +1083,7 @@ function main()
                     key       = {};
                     key.time  = t;
                     key.value = opacityToColor(layer.opacity.valueAtTime(t, false));
+                    key.out   = KeyframeInterpolationType.LINEAR;
                     keyColor.push(key);
                 }
             } else {
@@ -1062,6 +1091,7 @@ function main()
                     key       = {};
                     key.time  = layer.opacity.keyTime(k);
                     key.value = opacityToColor(layer.opacity.valueAtTime(key.time, false));
+                    key.out   = layer.opacity.keyOutInterpolationType(k);
                     keyColor.push(key);
                 }
             }
@@ -1089,6 +1119,7 @@ function main()
                                 key       = {};
                                 key.time  = t;
                                 key.value = pin.position.valueAtTime(t, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyPosition.push(key);
                             }
                         // or export AE keyframes
@@ -1097,6 +1128,7 @@ function main()
                                 key       = {};
                                 key.time  = pin.position.keyTime(k);
                                 key.value = pin.position.valueAtTime(key.time, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyPosition.push(key);
                             }
                         }
@@ -1131,18 +1163,21 @@ function main()
                                 key       = {};
                                 key.time  = t;
                                 key.value = pin.position.valueAtTime(t, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyPosition.push(key);
                             }
                             for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
                                 key       = {};
                                 key.time  = t;
                                 key.value = pin.amount.valueAtTime(t, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyStiffness.push(key);
                             }
                             for (t = comp.workAreaStart; t <= comp.workAreaDuration; t += comp.frameDuration) {
                                 key       = {};
                                 key.time  = t;
                                 key.value = pin.extent.valueAtTime(t, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyExtent.push(key);
                             }
                         // or export AE keyframes
@@ -1151,18 +1186,21 @@ function main()
                                 key       = {};
                                 key.time  = pin.position.keyTime(k);
                                 key.value = pin.position.valueAtTime(key.time, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyPosition.push(key);
                             }
                             for (k = 1; k <= pin.amount.numKeys; k++) {
                                 key       = {};
                                 key.time  = pin.amount.keyTime(k);
                                 key.value = pin.amount.valueAtTime(key.time, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyStiffness.push(key);
                             }
                             for (k = 1; k <= pin.extent.numKeys; k++) {
                                 key       = {};
                                 key.time  = pin.extent.keyTime(k);
                                 key.value = pin.extent.valueAtTime(key.time, false);
+                                key.out   = KeyframeInterpolationType.LINEAR;
                                 keyExtent.push(key);
                             }
                         }
@@ -1263,8 +1301,12 @@ function main()
                 if (keyColor.length > 0) {
                     json.writeln("\t\t\t\t\"color\": [");
                     for (i = 0; i < keyColor.length; i++) {
-                        json.writeln("\t\t\t\t\t{ \"time\": " + valueToString(keyColor[i].time)
-                                + ", \"color\": \"" + keyColor[i].value + "\" },");
+                        line = "\t\t\t\t\t{ \"time\": " + valueToString(keyColor[i].time);
+                        if (i < keyColor.length-1) line += interpolationToCurve(keyColor[i].out);
+                        line += ", \"color\": \"" + keyColor[i].value + "\"";
+                        line += " }";
+                        if (i < keyColor.length-1) line += ",";
+                        json.writeln(line);
                     }
                     json.writeln("\t\t\t\t],");
                 }
