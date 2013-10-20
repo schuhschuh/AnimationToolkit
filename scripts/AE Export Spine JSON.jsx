@@ -672,7 +672,6 @@ function main()
                         item.name = footageName(item);
                         if (item.name == footage.name) {
                             ++n;
-                            alert("Rename footage item from " + item.name + " -> " + item.name + "_" + n);
                             item.name += "_" + n;
                         }
                     }
