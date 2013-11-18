@@ -674,12 +674,15 @@ function colorKeyAtTime(layer, t)
     _key.value = layer.opacity.valueAtTime(t, false);
     _key.curve = interpolationAtTime(layer.opacity, t);
     // times opacity of parents
+    // note that opacity of parent has no influence on layer
+    /*
     _parent = layer.parent;
     while (_parent) {
         _key.value = _key.value * (_parent.opacity.valueAtTime(t, false) / 100);
         if (interpolationAtTime(_parent.opacity, t) == 'linear') _key.curve = 'linear';
         _parent = _parent.parent;
     }
+    */
     // times opacity of containing compositions
     if (precomps) {
         for (_p = 0; _p < precomps.length; _p++) {
@@ -1229,13 +1232,10 @@ function writeSlotAnimations(json, comp, attachments)
         if (layer.nullLayer || !layer.enabled) continue;
         // memorize current opacity key times (restored at end of loop)
         prevOpacityKeyTimes = clone(opacityKeyTimes);
-        // opacity key times of layer and its parents
-        _layer = layer;
-        while (_layer) {
-            for (i = 1; i <= _layer.opacity.numKeys; i++) {
-                opacityKeyTimes[_layer.opacity.keyTime(i)] = true;
-            }
-            _layer = _layer.parent;
+        // opacity key times of layer
+        // note that parent opacity values have no influence on layer
+        for (i = 1; i <= layer.opacity.numKeys; i++) {
+            opacityKeyTimes[layer.opacity.keyTime(i)] = true;
         }
         // export slots of precomposed layers
         if (layer.source.typeName == 'Composition') {
