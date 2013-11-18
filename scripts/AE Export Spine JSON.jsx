@@ -548,10 +548,11 @@ function sparsifyKeyframes(comp, key, setup)
         }
     }
     // last keyframe only required if different from second to last keyframe
-    if (key[key.length-2].curve != 'stepped' && key[key.length-2].curve != 'linear') {
-        _out.push(key[key.length-1]);
-    } else if (key.length > 1 && notEqual(key[key.length-2].value, key[key.length-1].value)) {
-        _out.push(key[key.length-1]);
+    if (key.length > 1) {
+        if ((key[key.length-2].curve != 'stepped' && key[key.length-2].curve != 'linear') ||
+                notEqual(key[key.length-2].value, key[key.length-1].value)) {
+            _out.push(key[key.length-1]);
+        }
     }
     return _out;
 }
